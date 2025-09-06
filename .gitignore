@@ -41,3 +41,6 @@
 *.dwo
 /out
 /build
+.DS_Store
+.cache/
+.vscode/
