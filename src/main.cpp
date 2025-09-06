@@ -20,22 +20,9 @@ void key_callback(
 	int mode);
 GLuint shaders_prepare();
 void render_prepare(GLuint& ret_vao, GLuint& ret_vbo);
+void set_viewport(GLFWwindow* window);
+void dump_system_info();
 // ---------------------------------
-
-// definition functions ------------
-void dump_system_info()
-{
-	const std::string version   = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-	const std::string vendor    = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-	const std::string renderer  = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-	const std::string glsl      = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
-
-	logger::info("OpenGL info");
-	logger::info("  version  :  " + version);
-	logger::info("  vendor   :  " + vendor);
-	logger::info("  renderer :  " + renderer);
-	logger::info("  glsl     :  " + glsl);
-}
 
 int main() 
 {
@@ -72,8 +59,7 @@ int main()
 	}
 
 	dump_system_info();
-
-	glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+	set_viewport(window);
 
 	const GLuint shader_prog = shaders_prepare();
 
@@ -172,4 +158,30 @@ void render_prepare(GLuint& ret_vao, GLuint& ret_vbo)
 
 	ret_vao = vao;
 	ret_vbo = vbo;
+}
+
+void set_viewport(GLFWwindow* window)
+{
+	int framebuffer_width = WINDOW_WIDTH;
+	int frame_buffer_height = WINDOW_HEIGHT;
+	glfwGetFramebufferSize(
+		window, 
+		&framebuffer_width, 
+		&frame_buffer_height);
+
+	glViewport(0, 0, framebuffer_width, frame_buffer_height);
+}
+
+void dump_system_info()
+{
+	const std::string version   = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+	const std::string vendor    = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+	const std::string renderer  = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+	const std::string glsl      = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+
+	logger::info("OpenGL info");
+	logger::info("  version  :  " + version);
+	logger::info("  vendor   :  " + vendor);
+	logger::info("  renderer :  " + renderer);
+	logger::info("  glsl     :  " + glsl);
 }
