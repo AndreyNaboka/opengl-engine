@@ -4,7 +4,6 @@
 #include "shaders.h"
 #include "settings.h"
 
-// Отключаем предупреждения от macOS о deprecated OpenGL
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
@@ -12,8 +11,18 @@
 
 #pragma clang diagnostic pop
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+// declare functions ---------------
+void key_callback(
+	GLFWwindow* window, 
+	int key, 
+	int scancode, 
+	int action, 
+	int mode);
+GLuint shaders_prepare();
+void render_prepare(GLuint& ret_vao, GLuint& ret_vbo);
+// ---------------------------------
 
+// definition functions ------------
 void dump_system_info()
 {
 	const std::string version   = reinterpret_cast<const char*>(glGetString(GL_VERSION));
@@ -28,7 +37,8 @@ void dump_system_info()
 	logger::info("  glsl     :  " + glsl);
 }
 
-int main() {
+int main() 
+{
 	if (!glfwInit()) {
 		logger::error("Failed to initialize GLFW");
 		return -1;
@@ -63,19 +73,103 @@ int main() {
 
 	dump_system_info();
 
+	glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+	const GLuint shader_prog = shaders_prepare();
+
+	GLuint vao = 0;
+	GLuint vbo = 0;
+	render_prepare(vao, vbo);
+
 	while (!glfwWindowShouldClose(window)) {
+		glfwPollEvents();
+
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		glfwPollEvents();
+		
+		glUseProgram(shader_prog);
+		glBindVertexArray(vao);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glBindVertexArray(0);
+
 		glfwSwapBuffers(window);
 	}
 
+	glDeleteVertexArrays(1, &vao);
+	glDeleteBuffers(1, &vbo);
 	glfwTerminate();
 	return 0;
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
+void key_callback(
+	GLFWwindow* window, 
+	int key, 
+	int scancode, 
+	int action, 
+	int mode) 
+{
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
+}
+
+GLuint shaders_prepare() 
+{
+	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+	const char* v_shader_ptr = simple_vert_shader.c_str();
+	glShaderSource(vertex_shader, 1, &v_shader_ptr, nullptr);
+	glCompileShader(vertex_shader);
+
+	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+	const char* f_shader_ptr = simple_frag_shader.c_str();
+	glShaderSource(fragment_shader, 1, &f_shader_ptr, nullptr);
+	glCompileShader(fragment_shader);
+
+	GLuint shader_program = glCreateProgram();
+	glAttachShader(shader_program, vertex_shader);
+	glAttachShader(shader_program, fragment_shader);
+	glLinkProgram(shader_program);
+
+	glDeleteShader(fragment_shader);
+	glDeleteShader(vertex_shader);
+
+	return shader_program;
+}
+
+void render_prepare(GLuint& ret_vao, GLuint& ret_vbo)
+{
+	constexpr GLfloat vertices[] = {
+		-0.5f, -0.5f, 0.0f, // Left  
+		 0.5f, -0.5f, 0.0f, // Right 
+		 0.0f,  0.5f, 0.0f  // Top   
+	};
+
+	GLuint vbo = 0;
+	GLuint vao = 0;
+
+	glGenVertexArrays(1, &vao);
+	glGenBuffers(1, &vbo);
+
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, 
+		sizeof(vertices),
+		vertices,
+		GL_STATIC_DRAW);
+
+	glVertexAttribPointer(
+		0, 
+		3, 
+		GL_FLOAT, 
+		GL_FALSE, 
+		3 * sizeof(GLfloat),
+		static_cast<GLvoid*>(0));
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	ret_vao = vao;
+	ret_vbo = vbo;
 }
