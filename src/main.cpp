@@ -1,4 +1,3 @@
-// src/main.cpp
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 #include "logger.h"
@@ -18,50 +17,42 @@ void dump_system_info()
 	const std::string renderer  = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
 	const std::string glsl      = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-	Logger::info("OpenGL info");
-	Logger::info("  version  :  " + version);
-	Logger::info("  vendor   :  " + vendor);
-	Logger::info("  renderer :  " + renderer);
-	Logger::info("  glsl     :  " + glsl);
+	logger::info("OpenGL info");
+	logger::info("  version  :  " + version);
+	logger::info("  vendor   :  " + vendor);
+	logger::info("  renderer :  " + renderer);
+	logger::info("  glsl     :  " + glsl);
 }
 
 int main() {
-	// Инициализация GLFW
 	if (!glfwInit()) {
-		Logger::error("Failed to initialize GLFW");
+		logger::error("Failed to initialize GLFW");
 		return -1;
 	}
 
-	// Настройка контекста OpenGL
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	// Создаём окно
 	GLFWwindow* window = glfwCreateWindow(800, 600, "Wolrd", nullptr, nullptr);
 	if (!window) {
-		Logger::error("Failed to create GLFW window");
+		logger::error("Failed to create GLFW window");
 		glfwTerminate();
 		return -1;
 	}
 
 	glfwMakeContextCurrent(window);
 
-	// Загружаем OpenGL функции через GLAD
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		Logger::error("Failed to initialize GLAD");
+		logger::error("Failed to initialize GLAD");
 		return -1;
 	}
 
 	dump_system_info();
 
-	// Главный цикл
 	while (!glfwWindowShouldClose(window)) {
-		// Очистка экрана
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-
-		// События и буфер
 		glfwPollEvents();
 		glfwSwapBuffers(window);
 	}
