@@ -1,6 +1,8 @@
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 #include "logger.h"
+#include "shaders.h"
+#include "settings.h"
 
 // Отключаем предупреждения от macOS о deprecated OpenGL
 #pragma clang diagnostic push
@@ -9,6 +11,8 @@
 #include <GLFW/glfw3.h>
 
 #pragma clang diagnostic pop
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 void dump_system_info()
 {
@@ -33,8 +37,16 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "Wolrd", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(
+		WINDOW_WIDTH, 
+		WINDOW_HEIGHT, 
+		WINDOW_TITLE, 
+		nullptr, 
+		nullptr
+	);
+
 	if (!window) {
 		logger::error("Failed to create GLFW window");
 		glfwTerminate();
@@ -42,6 +54,7 @@ int main() {
 	}
 
 	glfwMakeContextCurrent(window);
+	glfwSetKeyCallback(window, key_callback);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		logger::error("Failed to initialize GLAD");
@@ -59,4 +72,10 @@ int main() {
 
 	glfwTerminate();
 	return 0;
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, GL_TRUE);
+	}
 }
