@@ -170,6 +170,8 @@ void render_prepare(GLuint& ret_vao, GLuint& ret_vbo)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	ret_vao = vao;
 	ret_vbo = vbo;
 }
