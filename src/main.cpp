@@ -75,7 +75,7 @@ int main()
 		
 		glUseProgram(shader_prog);
 		glBindVertexArray(vao);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
@@ -125,16 +125,24 @@ GLuint shaders_prepare()
 void render_prepare(GLuint& ret_vao, GLuint& ret_vbo)
 {
 	constexpr GLfloat vertices[] = {
-		-0.5f, -0.5f, 0.0f, // Left  
-		 0.5f, -0.5f, 0.0f, // Right 
-		 0.0f,  0.5f, 0.0f  // Top   
+       0.5f,  0.5f, 0.0f,  // Верхний правый угол
+    	 0.5f, -0.5f, 0.0f,  // Нижний правый угол
+    	-0.5f, -0.5f, 0.0f,  // Нижний левый угол
+    	-0.5f,  0.5f, 0.0f   // Верхний левый угол
 	};
+
+	constexpr GLuint indices[] = {
+   	0, 1, 3,   // Первый треугольник
+    	1, 2, 3    // Второй треугольник
+	};  
 
 	GLuint vbo = 0;
 	GLuint vao = 0;
+	GLuint ibo = 0;
 
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
+	glGenBuffers(1, &ibo);
 
 	glBindVertexArray(vao);
 
@@ -142,6 +150,12 @@ void render_prepare(GLuint& ret_vao, GLuint& ret_vbo)
 	glBufferData(GL_ARRAY_BUFFER, 
 		sizeof(vertices),
 		vertices,
+		GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
+		sizeof(indices),
+		indices,
 		GL_STATIC_DRAW);
 
 	glVertexAttribPointer(
