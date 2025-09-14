@@ -14,12 +14,7 @@
 #pragma clang diagnostic pop
 
 // declare functions ---------------
-void key_callback(
-	GLFWwindow* window, 
-	int key, 
-	int scancode, 
-	int action, 
-	int mode);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void render_prepare(GLuint& ret_vao, GLuint& ret_vbo);
 void set_viewport(GLFWwindow* window);
 void dump_system_info();
@@ -37,13 +32,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-	GLFWwindow* window = glfwCreateWindow(
-		WINDOW_WIDTH, 
-		WINDOW_HEIGHT, 
-		WINDOW_TITLE, 
-		nullptr, 
-		nullptr
-	);
+	GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr);
 
 	if (!window) {
 		logger::error("Failed to create GLFW window");
@@ -89,12 +78,7 @@ int main()
 	return 0;
 }
 
-void key_callback(
-	GLFWwindow* window, 
-	int key, 
-	int scancode, 
-	int action, 
-	int mode) 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) 
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GL_TRUE);
@@ -126,24 +110,12 @@ void render_prepare(GLuint& ret_vao, GLuint& ret_vbo)
 	glBindVertexArray(vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, 
-		sizeof(vertices),
-		vertices,
-		GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
-		sizeof(indices),
-		indices,
-		GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(
-		0, 
-		3, 
-		GL_FLOAT, 
-		GL_FALSE, 
-		3 * sizeof(GLfloat),
-		static_cast<GLvoid*>(0));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), static_cast<GLvoid*>(0));
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -159,12 +131,7 @@ void set_viewport(GLFWwindow* window)
 {
 	int framebuffer_width = WINDOW_WIDTH;
 	int frame_buffer_height = WINDOW_HEIGHT;
-
-	glfwGetFramebufferSize(
-		window, 
-		&framebuffer_width, 
-		&frame_buffer_height);
-
+	glfwGetFramebufferSize(window, &framebuffer_width, &frame_buffer_height);
 	glViewport(0, 0, framebuffer_width, frame_buffer_height);
 }
 
