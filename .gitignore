@@ -44,3 +44,5 @@
 .DS_Store
 .cache/
 .vscode/
+include/.DS_Store
+libs/glfw/.DS_Store

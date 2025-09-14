@@ -1,13 +1,15 @@
-#include "glad/glad.h"
-#include <GLFW/glfw3.h>
+#include <glad/glad.h>
+#include <glfw/glfw3.h>
+
+#include <memory>
+
 #include "logger.h"
 #include "shaders.h"
+#include "shader.h"
 #include "settings.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-
-#include <GLFW/glfw3.h>
 
 #pragma clang diagnostic pop
 
@@ -101,6 +103,8 @@ void key_callback(
 
 GLuint shaders_prepare() 
 {
+	auto shader = shader::create("", "", "");
+
 	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 	const char* v_shader_ptr = simple_vert_shader.c_str();
 	glShaderSource(vertex_shader, 1, &v_shader_ptr, nullptr);
@@ -180,6 +184,7 @@ void set_viewport(GLFWwindow* window)
 {
 	int framebuffer_width = WINDOW_WIDTH;
 	int frame_buffer_height = WINDOW_HEIGHT;
+
 	glfwGetFramebufferSize(
 		window, 
 		&framebuffer_width, 
