@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "logger.h"
-#include "shaders.h"
+#include "shaders_lib.h"
 #include "shader.h"
 #include "settings.h"
 
@@ -20,7 +20,6 @@ void key_callback(
 	int scancode, 
 	int action, 
 	int mode);
-GLuint shaders_prepare();
 void render_prepare(GLuint& ret_vao, GLuint& ret_vbo);
 void set_viewport(GLFWwindow* window);
 void dump_system_info();
@@ -63,7 +62,7 @@ int main()
 	dump_system_info();
 	set_viewport(window);
 
-	const GLuint shader_prog = shaders_prepare();
+	std::shared_ptr<shader> shader = shader::create("simple", simple_vert_shader, simple_frag_shader);
 
 	GLuint vao = 0;
 	GLuint vbo = 0;
@@ -74,8 +73,9 @@ int main()
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		shader->bind_shader();
 		
-		glUseProgram(shader_prog);
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
@@ -99,31 +99,6 @@ void key_callback(
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
-}
-
-GLuint shaders_prepare() 
-{
-	auto shader = shader::create("", "", "");
-
-	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	const char* v_shader_ptr = simple_vert_shader.c_str();
-	glShaderSource(vertex_shader, 1, &v_shader_ptr, nullptr);
-	glCompileShader(vertex_shader);
-
-	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	const char* f_shader_ptr = simple_frag_shader.c_str();
-	glShaderSource(fragment_shader, 1, &f_shader_ptr, nullptr);
-	glCompileShader(fragment_shader);
-
-	GLuint shader_program = glCreateProgram();
-	glAttachShader(shader_program, vertex_shader);
-	glAttachShader(shader_program, fragment_shader);
-	glLinkProgram(shader_program);
-
-	glDeleteShader(fragment_shader);
-	glDeleteShader(vertex_shader);
-
-	return shader_program;
 }
 
 void render_prepare(GLuint& ret_vao, GLuint& ret_vbo)

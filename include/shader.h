@@ -8,8 +8,7 @@ class shader
 {
 public:
    static std::shared_ptr<shader> create(const std::string& name, const std::string& vertex_code, const std::string& fragment_code);
-   GLuint get_program() const { return _program ;}
-   void bind_shader();
+   void bind_shader() { glUseProgram(_program); };
 
 private:
    shader(const std::string& name, const std::string& vertex_code, const std::string& fragment_code);
