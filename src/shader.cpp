@@ -15,6 +15,26 @@ std::shared_ptr<shader> shader::create(const std::string& name, const std::strin
    return std::shared_ptr<shader>(new shader(name, vertex_code, fragment_code));
 }
 
+GLint shader::get_uniform_loc(const std::string &name)
+{
+	if (!_is_inited) {
+		logger::error("Can't get uniform " + name + " from shader " + _name + ", cause not inited");
+		return -1;
+	}
+	auto key = _uniforms.find(name);
+	if (key != _uniforms.end()) {
+		return key->second;
+	}
+
+	const GLint shader_uniform_location = glGetUniformLocation(_program, name.c_str());
+	if (shader_uniform_location == -1) {
+		logger::error("Can't find uniform " + name + " in shader " + _name + ", check uniform name");
+		return -1;
+	}
+
+	_uniforms[name] = shader_uniform_location;
+}
+
 shader::shader(const std::string& name, const std::string &vertex_code, const std::string &fragment_code)
 : _name(name)
 , _fragment_code(fragment_code)
@@ -67,4 +87,6 @@ shader::shader(const std::string& name, const std::string &vertex_code, const st
 
 	glDeleteShader(fragment_shader);
 	glDeleteShader(vertex_shader);
+
+	_is_inited = true;
 }

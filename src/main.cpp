@@ -2,6 +2,7 @@
 #include <glfw/glfw3.h>
 
 #include <memory>
+#include <cmath>
 
 #include "logger.h"
 #include "shaders_lib.h"
@@ -63,7 +64,12 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// animate shader
+		const GLfloat time_value = glfwGetTime();
+		const GLfloat green_value = (std::sin(time_value) * 0.5f) + 0.5f;
+		const GLint vertex_color_uniform = shader->get_uniform_loc("vertex_color");
 		shader->bind_shader();
+		glUniform4f(vertex_color_uniform, 0.0f, green_value, 0.0f, 1.0f);
 		
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
