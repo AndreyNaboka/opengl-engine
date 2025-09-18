@@ -66,10 +66,10 @@ int main()
 
 		// animate shader
 		const GLfloat time_value = glfwGetTime();
-		const GLfloat green_value = (std::sin(time_value) * 0.5f) + 0.5f;
-		const GLint vertex_color_uniform = shader->get_uniform_loc("vertex_color");
+		const GLfloat progress = (std::sin(time_value * 0.5) * 0.5f) + 0.5f;
+		const GLint u_time = shader->get_uniform_loc("u_time");
 		shader->bind_shader();
-		glUniform4f(vertex_color_uniform, 0.0f, green_value, 0.0f, 1.0f);
+		glUniform1f(u_time, progress);
 		
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
