@@ -22,7 +22,7 @@ shader::shader(const std::string& name, const std::string &vertex_code, const st
 {
 	GLint is_success = true;
 	GLchar info_log[512];
-	int errors = 0;
+	bool shader_failed = false;
 
 	// vertex shader
 	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -30,9 +30,8 @@ shader::shader(const std::string& name, const std::string &vertex_code, const st
 	glShaderSource(vertex_shader, 1, &v_shader_ptr, nullptr);
 	glCompileShader(vertex_shader);
 	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &is_success);
-	if(!is_success)
-	{
-		errors++;
+	if(!is_success) {
+		shader_failed = true;
 		glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
 		logger::error("Vertex shader " + name + " compile failed: " + std::string(info_log));
 	};
@@ -43,9 +42,8 @@ shader::shader(const std::string& name, const std::string &vertex_code, const st
 	glShaderSource(fragment_shader, 1, &f_shader_ptr, nullptr);
 	glCompileShader(fragment_shader);
 	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &is_success);
-	if(!is_success)
-	{
-		errors++;
+	if(!is_success) {
+		shader_failed = true;
 		glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
 		logger::error("Fragment shader " + name + " compile failed: " + std::string(info_log));
 	};
@@ -56,14 +54,16 @@ shader::shader(const std::string& name, const std::string &vertex_code, const st
 	glAttachShader(_program, fragment_shader);
 	glLinkProgram(_program);
 	glGetProgramiv(_program, GL_LINK_STATUS, &is_success);
-	if(!is_success)
-	{
-		errors++;
+	if(!is_success) {
+		shader_failed = true;
 		glGetProgramInfoLog(_program, 512, NULL, info_log);
 		logger::error("Shader " + name + " link failed: " + std::string(info_log));
 	}
 	
-	if (!errors) logger::info("Shader " + name + " create success");
+	if (!shader_failed) 
+		logger::info("Shader " + name + " create success");
+	else
+		logger::error("Shader " + name + " create failed");
 
 	glDeleteShader(fragment_shader);
 	glDeleteShader(vertex_shader);
