@@ -7,6 +7,7 @@
 #include "logger.h"
 #include "shaders_lib.h"
 #include "shader.h"
+#include "texture.h"
 #include "settings.h"
 
 #pragma clang diagnostic push

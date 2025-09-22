@@ -33,6 +33,7 @@ GLint shader::get_uniform_loc(const std::string &name)
 	}
 
 	_uniforms[name] = shader_uniform_location;
+	return shader_uniform_location;
 }
 
 shader::shader(const std::string& name, const std::string &vertex_code, const std::string &fragment_code)
