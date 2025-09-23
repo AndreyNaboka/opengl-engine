@@ -53,11 +53,16 @@ int main()
 	dump_system_info();
 	set_viewport(window);
 
-	std::shared_ptr<shader> shader = shader::create("simple", simple_vert_shader, simple_frag_shader);
-
 	GLuint vao = 0;
 	GLuint vbo = 0;
 	render_prepare(vao, vbo);
+
+	// shaders
+	std::shared_ptr<shader> shader = shader::create("simple", textured_vert_shader, textured_frag_shader);
+	// textures
+	std::shared_ptr<texture> texture = texture::create("grass", "/Users/andreynaboka/code/assets/textures/Grass_01.png");
+	if (!texture) return -1;
+	texture->load();
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -66,11 +71,12 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// animate shader
-		const GLfloat time_value = glfwGetTime();
-		const GLfloat progress = (std::sin(time_value * 0.5) * 0.5f) + 0.5f;
-		const GLint u_time = shader->get_uniform_loc("u_time");
-		shader->bind_shader();
-		glUniform1f(u_time, progress);
+		// const GLfloat time_value = glfwGetTime();
+		// const GLfloat progress = (std::sin(time_value * 0.5) * 0.5f) + 0.5f;
+		// const GLint u_time = shader->get_uniform_loc("u_time");
+		texture->bind();
+		shader->bind();
+		// glUniform1f(u_time, progress);
 		
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -95,10 +101,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void render_prepare(GLuint& ret_vao, GLuint& ret_vbo)
 {
 	constexpr GLfloat vertices[] = {
-       0.5f,  0.5f, 0.0f,  // Верхний правый угол
-    	 0.5f, -0.5f, 0.0f,  // Нижний правый угол
-    	-0.5f, -0.5f, 0.0f,  // Нижний левый угол
-    	-0.5f,  0.5f, 0.0f   // Верхний левый угол
+		 // positions         // colors           // texture coords
+       0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // Верхний правый угол
+    	 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // Нижний правый угол
+    	-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // Нижний левый угол
+    	-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // Верхний левый угол
 	};
 
 	constexpr GLuint indices[] = {
@@ -122,8 +129,15 @@ void render_prepare(GLuint& ret_vao, GLuint& ret_vbo)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), static_cast<GLvoid*>(0));
+	// position attributes
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), static_cast<GLvoid*>(0));
 	glEnableVertexAttribArray(0);
+	// color attributes
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+	// texture coords
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);

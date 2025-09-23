@@ -10,7 +10,7 @@ class shader
 {
 public:
    static std::shared_ptr<shader> create(const std::string& name, const std::string& vertex_code, const std::string& fragment_code);
-   void bind_shader() { glUseProgram(_program); };
+   void bind() { glUseProgram(_program); };
    GLint get_uniform_loc(const std::string& name);
 
 private:
