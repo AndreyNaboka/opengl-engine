@@ -1,5 +1,8 @@
 #include "texture.h"
 #include "logger.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 
 std::shared_ptr<texture> texture::create(const std::string &name, const std::string &path)
 {
@@ -20,7 +23,14 @@ std::shared_ptr<texture> texture::create(const std::string &name, const std::str
 
 bool texture::load()
 {
-   return false;
+   int width, height, channels;
+   _image_data = stbi_load(_path.c_str(), &width, &height, &channels, 0);
+   if (!_image_data) {
+      logger::error("Can't read image " + _name);
+      return false;
+   }
+
+   return true;
 }
 
 void texture::bind()
@@ -40,4 +50,5 @@ texture::texture(const std::string &name, const std::string &path)
 texture::~texture()
 {
    logger::info("release texture " + _name);
+   delete[] _image_data; 
 }
