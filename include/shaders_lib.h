@@ -39,5 +39,5 @@ static const std::string textured_frag_shader = "#version 330 core\n"
     "uniform sampler2D ourTexture;\n"
     "void main()\n"
     "{\n"
-    "   color = texture(ourTexture, TexCoord);\n"
+    "   color = texture(ourTexture, TexCoord) * vec4(ourColor, 1.0f);\n"
     "}\n\0";
