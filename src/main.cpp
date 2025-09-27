@@ -70,30 +70,38 @@ int main()
 	glm::mat4 transform_mat = glm::mat4(1.0f);
 	transform_mat = glm::rotate(transform_mat, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	transform_mat = glm::scale(transform_mat, glm::vec3(0.5, 0.5, 0.5));  
+	float rot_angle = 0.0f;
+
+	double previous_time = glfwGetTime();
 
 	while (!glfwWindowShouldClose(window)) {
+		const double current_time = glfwGetTime();
+		const double delta_time = current_time - previous_time;
+
 		glfwPollEvents();
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// animate shader
-		// const GLfloat time_value = glfwGetTime();
-		// const GLfloat progress = (std::sin(time_value * 0.5) * 0.5f) + 0.5f;
-		// const GLint u_time = shader->get_uniform_loc("u_time");
 		texture->bind();
 
+		// apply transform
 		const GLuint uniform_transform = shader->get_uniform_loc("transform");
+		rot_angle += delta_time;
+		if (rot_angle >= 1.0f / 120.0f) {
+			transform_mat = glm::rotate(transform_mat, glm::radians(1.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+			rot_angle = 0.0f;
+		}
 		glUniformMatrix4fv(uniform_transform, 1, GL_FALSE, glm::value_ptr(transform_mat));
-
 		shader->bind();
-		// glUniform1f(u_time, progress);
 		
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
+
+		previous_time = current_time;
 	}
 
 	glDeleteVertexArrays(1, &vao);
