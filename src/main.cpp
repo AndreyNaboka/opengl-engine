@@ -66,6 +66,10 @@ int main()
 	std::shared_ptr<texture> texture = texture::create("grass", "/Users/andreynaboka/code/assets/textures/Grass_01.png");
 	if (!texture) return -1;
 	texture->load();
+	// transform matrix
+	glm::mat4 transform_mat = glm::mat4(1.0f);
+	transform_mat = glm::rotate(transform_mat, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	transform_mat = glm::scale(transform_mat, glm::vec3(0.5, 0.5, 0.5));  
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -78,6 +82,10 @@ int main()
 		// const GLfloat progress = (std::sin(time_value * 0.5) * 0.5f) + 0.5f;
 		// const GLint u_time = shader->get_uniform_loc("u_time");
 		texture->bind();
+
+		const GLuint uniform_transform = shader->get_uniform_loc("transform");
+		glUniformMatrix4fv(uniform_transform, 1, GL_FALSE, glm::value_ptr(transform_mat));
+
 		shader->bind();
 		// glUniform1f(u_time, progress);
 		
