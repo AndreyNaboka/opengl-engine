@@ -42,6 +42,7 @@ void texture::load()
    else if (channels == 4)
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
    glGenerateMipmap(GL_TEXTURE_2D);
+   glBindTexture(GL_TEXTURE_2D, 0);
 
    stbi_image_free(image_data);
    _inited = true;
@@ -53,6 +54,7 @@ void texture::bind()
       logger::error("try to bind not inited texture - " + _name);
       return;
    }
+   glActiveTexture(GL_TEXTURE0);
    glBindTexture(GL_TEXTURE_2D, _id);
 }
 
