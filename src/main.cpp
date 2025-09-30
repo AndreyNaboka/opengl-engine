@@ -132,6 +132,8 @@ void render_prepare(GLuint& ret_vao, GLuint& ret_vbo)
     	1, 2, 3    // Второй треугольник
 	};  
 
+	glEnable(GL_DEPTH_TEST);
+
 	GLuint vbo = 0;
 	GLuint vao = 0;
 	GLuint ibo = 0;
