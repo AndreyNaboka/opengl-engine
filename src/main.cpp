@@ -115,9 +115,7 @@ int main()
 		const GLuint model_uniform = shader->get_uniform_loc("model");
 		const GLuint view_uniform  = shader->get_uniform_loc("view");
 		const GLuint projection_uniform = shader->get_uniform_loc("projection");
-		const GLuint texture_uniform = shader->get_uniform_loc("ourTexture");
 
-		glUniform1i(texture_uniform, 0);
 		glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
 
