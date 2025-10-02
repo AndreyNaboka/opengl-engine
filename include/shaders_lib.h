@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 
 static const std::string simple_vert_shader = "#version 330 core\n"

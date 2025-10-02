@@ -13,6 +13,7 @@
 #include "texture.h"
 #include "settings.h"
 #include "camera.h"
+#include "game.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
@@ -29,9 +30,8 @@ void update_fps(GLFWwindow* window);
 
 // global vars ---------------------
 std::shared_ptr<camera> main_camera;
-double last_time = 0.0f;
+std::shared_ptr<game> g;
 bool   keys[1024];
-int    number_of_frames = 0;
 // ---------------------------------
 
 int main() 
@@ -61,6 +61,8 @@ int main()
 		logger::error("Failed to initialize GLAD");
 		return -1;
 	}
+
+	g.reset(new game());
 
 	main_camera.reset(new camera());
 
@@ -134,6 +136,7 @@ int main()
 		// ------------------------------------------------------------
 
 		update_fps(window);
+		g->update();
 
 		glfwSwapBuffers(window);
 	}
@@ -146,17 +149,8 @@ int main()
 
 void update_fps(GLFWwindow* window) 
 {
-	const double current_time = glfwGetTime();
-	number_of_frames++;
-
-	if (current_time - last_time >= 1.0) {
-		const double fps = static_cast<double>(number_of_frames) / (current_time - last_time);
-		std::stringstream ss;
-		ss << "World fps " << fps;
-		glfwSetWindowTitle(window, ss.str().c_str());
-		number_of_frames = 0;
-		last_time = current_time;
-	}
+	const std::string title = "World fps " + std::to_string(g->get_fps());
+	glfwSetWindowTitle(window, title.c_str());
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
