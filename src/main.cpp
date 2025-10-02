@@ -97,7 +97,7 @@ int main()
 	};
 
 	// transform matrix prepare
-	const glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
 	const glm::mat4 projection = main_camera->get_proj_matrix();
 
 	while (!glfwWindowShouldClose(window)) {
@@ -115,6 +115,11 @@ int main()
 		const GLuint model_uniform = shader->get_uniform_loc("model");
 		const GLuint view_uniform  = shader->get_uniform_loc("view");
 		const GLuint projection_uniform = shader->get_uniform_loc("projection");
+
+		const GLfloat radius = 10.0f;
+		const GLfloat cam_x = sin(glfwGetTime()) * radius;
+		const GLfloat cam_z = cos(glfwGetTime()) * radius;
+		view = glm::lookAt(glm::vec3(cam_x, 0.0, cam_z), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
 
 		glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
