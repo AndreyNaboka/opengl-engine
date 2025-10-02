@@ -24,11 +24,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void render_prepare(GLuint& ret_vao, GLuint& ret_vbo);
 void set_viewport(GLFWwindow* window);
 void dump_system_info();
+void update_fps(GLFWwindow* window);
 // ---------------------------------
 
 // global vars ---------------------
-bool keys[1024];
 std::shared_ptr<camera> main_camera;
+double last_time = 0.0f;
+bool   keys[1024];
+int    number_of_frames = 0;
 // ---------------------------------
 
 int main() 
@@ -71,16 +74,9 @@ int main()
 	// shaders
 	std::shared_ptr<shader> shader = shader::create("simple", textured_vert_shader, textured_frag_shader);
 	// textures
-	std::shared_ptr<texture> texture = texture::create("grass", "/Users/andreynaboka/code/assets/textures/Grass_01.png");
+	std::shared_ptr<texture> texture = texture::create("grass", "/Users/andreynaboka/code/assets/textures/Ground_01.png");
 	if (!texture) return -1;
 	texture->load();
-	// transform matrix
-	// glm::mat4 transform_mat = glm::mat4(1.0f);
-	// transform_mat = glm::rotate(transform_mat, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	// transform_mat = glm::scale(transform_mat, glm::vec3(0.5, 0.5, 0.5));  
-	// float rot_angle = 0.0f;
-
-	double previous_time = glfwGetTime();
 
 	// models positions 
 	constexpr glm::vec3 cube_positions[] = {
@@ -97,16 +93,12 @@ int main()
 	};
 
 	// transform matrix prepare
-	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
 	const glm::mat4 projection = main_camera->get_proj_matrix();
 
 	while (!glfwWindowShouldClose(window)) {
-		const double current_time = glfwGetTime();
-		const double delta_time = current_time - previous_time;
-
 		glfwPollEvents();
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		texture->bind();
@@ -119,8 +111,8 @@ int main()
 		const GLfloat radius = 10.0f;
 		const GLfloat cam_x = sin(glfwGetTime()) * radius;
 		const GLfloat cam_z = cos(glfwGetTime()) * radius;
-		view = glm::lookAt(glm::vec3(cam_x, 0.0, cam_z), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-
+		glm::mat4 view = glm::lookAt(glm::vec3(cam_x, 0.0, cam_z), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+	
 		glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
 
@@ -141,15 +133,30 @@ int main()
 		glBindVertexArray(0);
 		// ------------------------------------------------------------
 
-		glfwSwapBuffers(window);
+		update_fps(window);
 
-		previous_time = current_time;
+		glfwSwapBuffers(window);
 	}
 
 	glDeleteVertexArrays(1, &vao);
 	glDeleteBuffers(1, &vbo);
 	glfwTerminate();
 	return 0;
+}
+
+void update_fps(GLFWwindow* window) 
+{
+	const double current_time = glfwGetTime();
+	number_of_frames++;
+
+	if (current_time - last_time >= 1.0) {
+		const double fps = static_cast<double>(number_of_frames) / (current_time - last_time);
+		std::stringstream ss;
+		ss << "World fps " << fps;
+		glfwSetWindowTitle(window, ss.str().c_str());
+		number_of_frames = 0;
+		last_time = current_time;
+	}
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
