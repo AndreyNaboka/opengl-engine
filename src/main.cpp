@@ -22,6 +22,8 @@
 
 // declare functions ---------------
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void render_prepare(GLuint& ret_vao, GLuint& ret_vbo);
 void set_viewport(GLFWwindow* window);
 void dump_system_info();
@@ -56,6 +58,8 @@ int main()
 
 	glfwMakeContextCurrent(window);
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		logger::error("Failed to initialize GLAD");
@@ -163,6 +167,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         else if (action == GLFW_RELEASE)
             keys[key] = false;
     }
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	main_camera->mouse_move(xpos, ypos);
+	// logger::info("Mouse pos [" + std::to_string(xpos) + ", " + std::to_string(ypos) + "]");
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	main_camera->mouse_move(xoffset, yoffset);
+	// logger::info("Mouse scroll [" + std::to_string(xoffset) + ", " + std::to_string(yoffset) + "]");
 }
 
 void render_prepare(GLuint& ret_vao, GLuint& ret_vbo)

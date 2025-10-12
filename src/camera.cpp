@@ -27,3 +27,11 @@ void camera::move_forward()
 void camera::move_backward()
 {
 }
+
+void camera::mouse_move(const double x, const double y)
+{
+}
+
+void camera::mouse_scroll(const double x_offset, const double y_offset)
+{
+}

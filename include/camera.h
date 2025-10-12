@@ -13,6 +13,8 @@ public:
    void move_forward();
    void move_backward();
    const glm::mat4& get_proj_matrix() const { return _proj_matrix; }
+   void mouse_move(const double x, const double y);
+   void mouse_scroll(const double x_offset, const double y_offset);
 
 private:
    float _speed = 1.0f;
