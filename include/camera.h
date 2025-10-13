@@ -17,7 +17,7 @@ public:
    void mouse_scroll(const float x_offset, const float y_offset);
 
    const glm::mat4& get_proj_matrix() const { return _proj_matrix; }
-
+   const glm::mat4& get_view_matrix();
 
 private:
    void update_camera_vectors();
@@ -29,8 +29,12 @@ private:
    float _speed =  3.0f;
    float _mouse_sensitivity = 0.25f;
 
+   bool _need_update_matrix = false;
+
+   glm::mat4 _view_matrix;
    glm::mat4 _proj_matrix;
    glm::vec3 _pos;
    glm::vec3 _front;
    glm::vec3 _up;
+   glm::vec3 _world_up;
 };
