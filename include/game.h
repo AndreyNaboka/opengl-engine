@@ -2,12 +2,19 @@
 
 class game {
 public:
-   game();
+   game(const game&) = delete;
+   game& operator=(const game&) = delete;
+   static game& instance() {
+      static game g;
+      return g;
+   }
    void update();
    const double get_delta_time() { return _delta_time; };
    const double get_fps() { return _fps; };
    
 private:
+   game();
+   ~game() = default;
    void update_fps();
 
 private:

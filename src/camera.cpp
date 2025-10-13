@@ -1,32 +1,39 @@
+#include "game.h"
 #include "camera.h"
 #include "settings.h"
 #include "glad/glad.h"
 
 camera::camera()
 {
-   _pos   = glm::vec3(0.0f, 0.0f, 3.0f);
-   _front = glm::vec3(0.0f, 0.0f, -1.0f);
-   _up    = glm::vec3(0.0f, 1.0f, 0.0f);
-
+   _pos         = glm::vec3(0.0f, 0.0f, 3.0f);
+   _up          = glm::vec3(0.0f, 1.0f, 0.0f);
+   _front       = glm::vec3(0.0f, 0.0f, -1.0f);
    _proj_matrix = glm::perspective(45.0f, WINDOW_ASPECT_RATIO, 0.1f, 100.0f);
+   _world_up    = _up;
 
    update_camera_vectors();
 }
 
-void camera::move_left()
+void camera::move_camera(const camera::camera_direction dir)
 {
-}
-
-void camera::move_right()
-{
-}
-
-void camera::move_forward()
-{
-}
-
-void camera::move_backward()
-{
+   const float delta_time = game::instance().get_delta_time();
+   const float velocity   = _speed * delta_time;
+   switch (dir) {
+      case camera::camera_direction::FORWARD:
+         _pos += _front * velocity;
+         break;
+      case camera::camera_direction::BACKWARD:
+         _pos -= _front * velocity;
+         break;
+      case camera::camera_direction::LEFT:
+         _pos -= _right * velocity;
+         break;
+      case camera::camera_direction::RIGHT:
+         _pos += _right * velocity;
+         break;
+      default:
+         break;
+   }
 }
 
 void camera::mouse_move(const float x, const float y, bool constrain_pitch)
@@ -63,6 +70,8 @@ void camera::update_camera_vectors()
    _front.y = sin(glm::radians(_pitch));
    _front.z = sin(glm::radians(_yaw)) * cos(glm::radians(_pitch));
    _front = glm::normalize(_front);
+   _right = glm::normalize(glm::cross(_front, _world_up));
+   _up = glm::normalize(glm::cross(_right, _front));
    _need_update_matrix = true;
 }
 

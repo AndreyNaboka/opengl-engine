@@ -5,14 +5,19 @@
 
 class camera
 {
+public: 
+   enum class camera_direction {
+      LEFT,
+      RIGHT,
+      FORWARD,
+      BACKWARD
+   };
+
 public:
    camera();
    void set_speed(const float new_speed) { _speed = new_speed; }
    void set_mouse_sensitivity(const float mouse_sensitivity) { _mouse_sensitivity = mouse_sensitivity; }
-   void move_left();
-   void move_right();
-   void move_forward();
-   void move_backward();
+   void move_camera(const camera::camera_direction dir);
    void mouse_move(const float x, const float y, bool constrain_pitch = true);
    void mouse_scroll(const float x_offset, const float y_offset);
 
@@ -37,4 +42,5 @@ private:
    glm::vec3 _front;
    glm::vec3 _up;
    glm::vec3 _world_up;
+   glm::vec3 _right;
 };

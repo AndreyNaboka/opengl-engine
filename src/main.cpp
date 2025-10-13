@@ -32,7 +32,6 @@ void update_fps(GLFWwindow* window);
 
 // global vars ---------------------
 std::shared_ptr<camera> main_camera;
-std::shared_ptr<game> g;
 bool   keys[1024];
 // ---------------------------------
 
@@ -47,6 +46,7 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr);
 
@@ -65,8 +65,6 @@ int main()
 		logger::error("Failed to initialize GLAD");
 		return -1;
 	}
-
-	g.reset(new game());
 
 	main_camera.reset(new camera());
 
@@ -140,7 +138,7 @@ int main()
 		// ------------------------------------------------------------
 
 		update_fps(window);
-		g->update();
+		game::instance().update();
 
 		glfwSwapBuffers(window);
 	}
@@ -153,7 +151,9 @@ int main()
 
 void update_fps(GLFWwindow* window) 
 {
-	const std::string title = "World fps " + std::to_string(g->get_fps());
+	const float current_fps = game::instance().get_fps();
+	if (current_fps == 0.0f) return;
+	const std::string title = "World fps " + std::to_string(current_fps);
 	glfwSetWindowTitle(window, title.c_str());
 }
 
@@ -172,13 +172,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	main_camera->mouse_move(xpos, ypos);
-	// logger::info("Mouse pos [" + std::to_string(xpos) + ", " + std::to_string(ypos) + "]");
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	main_camera->mouse_move(xoffset, yoffset);
-	// logger::info("Mouse scroll [" + std::to_string(xoffset) + ", " + std::to_string(yoffset) + "]");
 }
 
 void render_prepare(GLuint& ret_vao, GLuint& ret_vbo)
