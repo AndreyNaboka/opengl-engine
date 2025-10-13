@@ -28,11 +28,12 @@ void render_prepare(GLuint& ret_vao, GLuint& ret_vbo);
 void set_viewport(GLFWwindow* window);
 void dump_system_info();
 void update_fps(GLFWwindow* window);
+void update_camera();
 // ---------------------------------
 
 // global vars ---------------------
 std::shared_ptr<camera> main_camera;
-bool   keys[1024];
+bool keys[1024] = {};
 // ---------------------------------
 
 int main() 
@@ -60,6 +61,7 @@ int main()
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		logger::error("Failed to initialize GLAD");
@@ -101,6 +103,8 @@ int main()
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
+
+		update_camera();
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -147,6 +151,14 @@ int main()
 	glDeleteBuffers(1, &vbo);
 	glfwTerminate();
 	return 0;
+}
+
+void update_camera()
+{
+	if (keys[GLFW_KEY_W]) main_camera->move_camera(camera::camera_direction::FORWARD);
+	if (keys[GLFW_KEY_S]) main_camera->move_camera(camera::camera_direction::BACKWARD);
+	if (keys[GLFW_KEY_A]) main_camera->move_camera(camera::camera_direction::LEFT);
+	if (keys[GLFW_KEY_D]) main_camera->move_camera(camera::camera_direction::RIGHT);
 }
 
 void update_fps(GLFWwindow* window) 
