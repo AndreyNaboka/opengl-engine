@@ -10,7 +10,7 @@ camera::camera()
    _front       = glm::vec3(0.0f, 0.0f, -1.0f);
    _proj_matrix = glm::perspective(45.0f, WINDOW_ASPECT_RATIO, 0.1f, 100.0f);
    _world_up    = _up;
-
+   _view_matrix = glm::mat4(1.0f);
    update_camera_vectors();
 }
 
@@ -18,6 +18,7 @@ void camera::move_camera(const camera::camera_direction dir)
 {
    const float delta_time = game::instance().get_delta_time();
    const float velocity   = _speed * delta_time;
+
    switch (dir) {
       case camera::camera_direction::FORWARD:
          _pos += _front * velocity;
@@ -34,12 +35,12 @@ void camera::move_camera(const camera::camera_direction dir)
       default:
          break;
    }
+   
+   update_camera_vectors();
 }
 
 void camera::mouse_move(const float x, const float y, bool constrain_pitch)
 {
-   if (x == 0.0f && y == 0.0f) return;
-
    _yaw   += x * _mouse_sensitivity;
    _pitch += y * _mouse_sensitivity;
 
@@ -58,7 +59,7 @@ void camera::mouse_scroll(const float x_offset, const float y_offset)
 const glm::mat4 &camera::get_view_matrix()
 {
    if (_need_update_matrix) {
-      _view_matrix = glm::lookAt(_pos, _pos + _up, _up);
+      _view_matrix = glm::lookAt(_pos, _pos + _front, _up);
       _need_update_matrix = false;
    }
    return _view_matrix;

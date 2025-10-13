@@ -32,7 +32,7 @@ private:
    float _pitch =  0.0f;
    float _zoom  =  45.0f;  
    float _speed =  3.0f;
-   float _mouse_sensitivity = 0.25f;
+   float _mouse_sensitivity = 0.15f;
 
    bool _need_update_matrix = false;
 

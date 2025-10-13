@@ -34,6 +34,9 @@ void update_camera();
 // global vars ---------------------
 std::shared_ptr<camera> main_camera;
 bool keys[1024] = {};
+float last_x = WINDOW_WIDTH  * 0.5f;
+float last_y = WINDOW_HEIGHT * 0.5f;
+bool first_mouse_move = true;
 // ---------------------------------
 
 int main() 
@@ -116,12 +119,7 @@ int main()
 		const GLuint view_uniform  = shader->get_uniform_loc("view");
 		const GLuint projection_uniform = shader->get_uniform_loc("projection");
 
-		const GLfloat radius = 10.0f;
-		const GLfloat cam_x = sin(glfwGetTime()) * radius;
-		const GLfloat cam_z = cos(glfwGetTime()) * radius;
-		glm::mat4 view = glm::lookAt(glm::vec3(cam_x, 0.0, cam_z), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-	
-		glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(main_camera->get_view_matrix()));
 		glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
 
 		shader->bind();
@@ -183,7 +181,19 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	main_camera->mouse_move(xpos, ypos);
+	if (first_mouse_move) {
+		last_x = xpos;
+		last_y = ypos;
+		first_mouse_move = false;
+	}
+
+	const float x_offset = xpos - last_x;
+	const float y_offset = last_y - ypos;
+
+	last_x = xpos;
+	last_y = ypos;
+
+	main_camera->mouse_move(x_offset, y_offset);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
