@@ -14,6 +14,7 @@
 #include "settings.h"
 #include "camera.h"
 #include "game.h"
+#include "light.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
@@ -33,6 +34,7 @@ void update_camera();
 
 // global vars ---------------------
 std::shared_ptr<camera> main_camera;
+std::shared_ptr<light> global_light;
 bool keys[1024] = {};
 float last_x = WINDOW_WIDTH  * 0.5f;
 float last_y = WINDOW_HEIGHT * 0.5f;
@@ -72,6 +74,7 @@ int main()
 	}
 
 	main_camera.reset(new camera());
+	global_light = std::make_shared<light>(glm::vec3(1.2f, 1.0f, 2.0f), "main");
 
 	dump_system_info();
 	set_viewport(window);
@@ -112,6 +115,12 @@ int main()
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// light render------------------------------------------------ 
+		global_light->render();
+		// ------------------------------------------------------------
+
+
+		// draw objects------------------------------------------------
 		texture->bind();
 
 		// shader uniforms update--------------------------------------
