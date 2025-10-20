@@ -73,7 +73,7 @@ int main()
 		return -1;
 	}
 
-	main_camera.reset(new camera());
+	main_camera = std::make_shared<camera>();
 	global_light = std::make_shared<light>(glm::vec3(1.2f, 1.0f, 2.0f), "main");
 
 	dump_system_info();
