@@ -5,7 +5,6 @@
 #include <glm/ext.hpp>
 
 #include <memory>
-#include <cmath>
 
 #include "logger.h"
 #include "shaders_lib.h"
@@ -15,6 +14,7 @@
 #include "camera.h"
 #include "game.h"
 #include "light.h"
+#include "window.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
@@ -35,6 +35,7 @@ void update_camera();
 // global vars ---------------------
 std::shared_ptr<camera> main_camera;
 std::shared_ptr<light> global_light;
+std::shared_ptr<window> main_wnd;
 bool keys[1024] = {};
 float last_x = WINDOW_WIDTH  * 0.5f;
 float last_y = WINDOW_HEIGHT * 0.5f;
@@ -82,6 +83,9 @@ int main()
 	GLuint vao = 0;
 	GLuint vbo = 0;
 	render_prepare(vao, vbo);
+
+	// main window
+	main_wnd = window::create(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	// shaders
 	std::shared_ptr<shader> shader = shader::create("simple", textured_vert_shader, textured_frag_shader);
