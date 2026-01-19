@@ -1,5 +1,7 @@
+
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
+
 // GLM
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
@@ -21,7 +23,7 @@
 
 #pragma clang diagnostic pop
 
-// declare functions ---------------
+// declare fusnctions ---------------
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -35,7 +37,6 @@ void update_camera();
 // global vars ---------------------
 std::shared_ptr<camera> main_camera;
 std::shared_ptr<light> global_light;
-std::shared_ptr<window> main_wnd;
 bool keys[1024] = {};
 float last_x = WINDOW_WIDTH  * 0.5f;
 float last_y = WINDOW_HEIGHT * 0.5f;
@@ -44,48 +45,20 @@ bool first_mouse_move = true;
 
 int main() 
 {
-	if (!glfwInit()) {
-		logger::error("Failed to initialize GLFW");
-		return -1;
-	}
-
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-	glfwWindowHint(GLFW_SAMPLES, 4);
-
-	GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr);
-
-	if (!window) {
-		logger::error("Failed to create GLFW window");
-		glfwTerminate();
-		return -1;
-	}
-
-	glfwMakeContextCurrent(window);
-	glfwSetKeyCallback(window, key_callback);
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		logger::error("Failed to initialize GLAD");
-		return -1;
+	window::wnd_ptr main_wnd = *(window::create(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT));
+	if (!main_wnd) {
+		logger::error("Can't create main window. Exit.");
+		return EXIT_FAILURE;	
 	}
 
 	main_camera = std::make_shared<camera>();
 	global_light = std::make_shared<light>(glm::vec3(1.2f, 1.0f, 2.0f), "main");
 
 	dump_system_info();
-	set_viewport(window);
 
 	GLuint vao = 0;
 	GLuint vbo = 0;
 	render_prepare(vao, vbo);
-
-	// main window
-	main_wnd = window::create(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	// shaders
 	std::shared_ptr<shader> shader = shader::create("simple", textured_vert_shader, textured_frag_shader);
@@ -111,8 +84,8 @@ int main()
 	// transform matrix prepare
 	const glm::mat4 projection = main_camera->get_proj_matrix();
 
-	while (!glfwWindowShouldClose(window)) {
-		glfwPollEvents();
+	while (!main_wnd->should_close()) {
+		main_wnd->poll_events();
 
 		update_camera();
 
@@ -152,10 +125,10 @@ int main()
 		glBindVertexArray(0);
 		// ------------------------------------------------------------
 
-		update_fps(window);
+		update_fps(main_wnd->get_native());
 		game::instance().update();
 
-		glfwSwapBuffers(window);
+		main_wnd->swap_buffers();
 	}
 
 	glDeleteVertexArrays(1, &vao);
@@ -287,14 +260,6 @@ void render_prepare(GLuint& ret_vao, GLuint& ret_vbo)
 
 	ret_vao = vao;
 	ret_vbo = vbo;
-}
-
-void set_viewport(GLFWwindow* window)
-{
-	int framebuffer_width = WINDOW_WIDTH;
-	int frame_buffer_height = WINDOW_HEIGHT;
-	glfwGetFramebufferSize(window, &framebuffer_width, &frame_buffer_height);
-	glViewport(0, 0, framebuffer_width, frame_buffer_height);
 }
 
 void dump_system_info()
