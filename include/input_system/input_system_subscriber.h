@@ -1,3 +1,5 @@
+#pragma once
+
 class input_system_subscriber
 {
 public:

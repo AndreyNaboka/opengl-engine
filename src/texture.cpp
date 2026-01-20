@@ -6,12 +6,14 @@
 
 std::shared_ptr<texture> texture::create(const std::string &name, const std::string &path)
 {
-   if (name.empty()) {
+   if (name.empty())
+   {
       logger::error("Try to create texture with empty name");
       return nullptr;
    }
 
-   if (path.empty()) {
+   if (path.empty())
+   {
       logger::error("Try to create texture name: " + name + " with empty path to image");
       return nullptr;
    }
@@ -24,15 +26,16 @@ std::shared_ptr<texture> texture::create(const std::string &name, const std::str
 void texture::load()
 {
    int width, height, channels;
-   stbi_uc* image_data = stbi_load(_path.c_str(), &width, &height, &channels, 0);
-   if (!image_data) {
+   stbi_uc *image_data = stbi_load(_path.c_str(), &width, &height, &channels, 0);
+   if (!image_data)
+   {
       logger::error("Can't read image " + _name);
       return;
    }
 
    glGenTextures(1, &_id);
    glBindTexture(GL_TEXTURE_2D, _id);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// Set texture wrapping to GL_REPEAT (usually basic wrapping method)
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // Set texture wrapping to GL_REPEAT (usually basic wrapping method)
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
    // Set texture filtering parameters
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -50,7 +53,8 @@ void texture::load()
 
 void texture::bind()
 {
-   if (!_inited) {
+   if (!_inited)
+   {
       logger::error("try to bind not inited texture - " + _name);
       return;
    }

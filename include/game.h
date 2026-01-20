@@ -1,17 +1,19 @@
 #pragma once
 
-class game {
+class game
+{
 public:
-   game(const game&) = delete;
-   game& operator=(const game&) = delete;
-   static game& instance() {
+   game(const game &) = delete;
+   game &operator=(const game &) = delete;
+   static game &instance()
+   {
       static game g;
       return g;
    }
    void update();
    const double get_delta_time() { return _delta_time; };
    const double get_fps() { return _fps; };
-   
+
 private:
    game();
    ~game() = default;

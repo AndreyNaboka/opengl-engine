@@ -4,10 +4,10 @@
 #include <glm/ext.hpp>
 #include <string>
 
-class light 
+class light
 {
 public:
-   light(const glm::vec3& pos, const std::string& name);
+   light(const glm::vec3 &pos, const std::string &name);
    void render();
 
 private:
