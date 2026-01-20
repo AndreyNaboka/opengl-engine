@@ -41,12 +41,23 @@ std::optional<window::wnd_ptr> window::create(const std::string& title, const in
 	glViewport(0, 0, framebuffer_width, frame_buffer_height);
 
     window::wnd_ptr w_ptr(new window(native_window, title, w, h));
+    glfwSetWindowUserPointer(native_window, w_ptr.get());
     return w_ptr;
 }
 
 void window::key_callback(GLFWwindow* wnd, int key, int scancode, int action, int mods)
 {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) glfwSetWindowShouldClose(wnd, true);
 
+    auto* self = static_cast<window*>(glfwGetWindowUserPointer(wnd));
+    if (!self) { 
+        logger::info("Can't get glfwGetWindowUserPointer!");
+        return;
+    }
+
+    for (auto &subscriber: self->_input_subscribers) {
+        subscriber->on_key(key, scancode, action, mods);
+    }
 }
 
 void window::framebuffer_resize_callback(GLFWwindow* wnd, int width, int height)
@@ -67,7 +78,9 @@ window::window(GLFWwindow* wnd, const std::string& title, const int w, const int
 , _title(title)
 , _width(w)
 , _height(h)
-{}
+{
+    _input_subscribers.reserve(10);
+}
 
 window::~window()
 {
