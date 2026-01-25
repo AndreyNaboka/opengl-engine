@@ -17,8 +17,7 @@ camera::camera()
 
 void camera::move_camera(const camera::camera_direction dir)
 {
-   const float delta_time = game::instance().get_delta_time();
-   const float velocity = _speed * delta_time;
+   const float velocity = _speed * game::instance().get_delta_time();
 
    switch (dir)
    {
@@ -89,23 +88,18 @@ void camera::update()
       move_camera(camera_direction::LEFT);
    if (_move_right)
       move_camera(camera_direction::RIGHT);
-
-   _move_forward = _move_backward = _move_left = _move_right = false;
 }
 
 void camera::on_key(int code, int scancode, int action, int mods)
 {
-   if (action != GLFW_PRESS && action != GLFW_REPEAT)
-      return;
-
    if (code == GLFW_KEY_W)
-      _move_forward = true;
+      (action == GLFW_PRESS || action == GLFW_REPEAT) ? _move_forward = true : _move_forward = false;
    if (code == GLFW_KEY_S)
-      _move_backward = true;
+      (action == GLFW_PRESS || action == GLFW_REPEAT) ? _move_backward = true : _move_backward = false;
    if (code == GLFW_KEY_A)
-      _move_left = true;
+      (action == GLFW_PRESS || action == GLFW_REPEAT) ? _move_left = true : _move_left = false;
    if (code == GLFW_KEY_D)
-      _move_right = true;
+      (action == GLFW_PRESS || action == GLFW_REPEAT) ? _move_right = true : _move_right = false;
 }
 
 const glm::mat4 &camera::get_view_matrix()

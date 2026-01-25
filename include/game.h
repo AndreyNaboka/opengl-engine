@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+
 class game
 {
 public:
@@ -10,9 +12,14 @@ public:
       static game g;
       return g;
    }
-   void update();
+   void begin_update();
+   void end_update();
+
    const double get_delta_time() { return _delta_time; };
    const double get_fps() { return _fps; };
+   const unsigned int get_target_fps() const { return _target_fps; }
+   const float get_target_fps_time() const { 1.0 / get_target_fps(); }
+   const bool is_need_update_frame() const { return _need_update_frame; }
 
 private:
    game();
@@ -20,10 +27,12 @@ private:
    void update_fps();
 
 private:
-   double _prev_time = 0.0;
-   double _current_time = 0.0;
-   double _delta_time = 0.0;
+   std::chrono::high_resolution_clock::time_point _end_frame_time;
+   std::chrono::high_resolution_clock::time_point _start_frame_time;
+   int _fps = 0;
    int _number_of_frames = 0;
-   double _fps = 0.0;
-   double _fps_timer = 0.0;
+   bool _need_update_frame = false;
+   float _delta_time = 0.0f;
+   float _fps_timer = 0.0f;
+   unsigned int _target_fps = 120;
 };

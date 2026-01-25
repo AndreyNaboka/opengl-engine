@@ -80,20 +80,15 @@ int main()
 	while (!main_wnd->should_close())
 	{
 		main_wnd->poll_events();
+		game::instance().begin_update();
 
 		main_camera->update();
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// light render------------------------------------------------
-		global_light->render();
-		// ------------------------------------------------------------
-
-		// draw objects------------------------------------------------
 		texture->bind();
 
-		// shader uniforms update--------------------------------------
 		const GLuint model_uniform = shader->get_uniform_loc("model");
 		const GLuint view_uniform = shader->get_uniform_loc("view");
 		const GLuint projection_uniform = shader->get_uniform_loc("projection");
@@ -102,9 +97,7 @@ int main()
 		glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
 
 		shader->bind();
-		// ------------------------------------------------------------
 
-		// draw models ------------------------------------------------
 		glBindVertexArray(vao);
 		constexpr unsigned int count_of_models = 10;
 		for (int i = 0; i < count_of_models; i++)
@@ -117,12 +110,12 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 		glBindVertexArray(0);
-		// ------------------------------------------------------------
 
 		main_wnd->late_update();
-		game::instance().update();
 
 		main_wnd->swap_buffers();
+
+		game::instance().end_update();
 	}
 
 	glDeleteVertexArrays(1, &vao);

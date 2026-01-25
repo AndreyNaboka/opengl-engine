@@ -45,6 +45,8 @@ std::optional<window::wnd_ptr> window::create(const std::string &title, const in
     glfwGetFramebufferSize(native_window, &framebuffer_width, &frame_buffer_height);
     glViewport(0, 0, framebuffer_width, frame_buffer_height);
 
+    glfwSwapInterval(1);
+
     window::wnd_ptr w_ptr(new window(native_window, title, w, h));
     glfwSetWindowUserPointer(native_window, w_ptr.get());
     return w_ptr;
@@ -78,6 +80,11 @@ void window::mouse_callback(GLFWwindow *wnd, double xpos, double ypos)
 
 void window::scroll_callback(GLFWwindow *wnd, double xoffset, double yoffset)
 {
+    auto *self = static_cast<window *>(glfwGetWindowUserPointer(wnd));
+    for (auto &subscriber : self->_input_subscribers)
+    {
+        subscriber->on_scroll(xoffset, yoffset);
+    }
 }
 
 window::window(GLFWwindow *wnd, const std::string &title, const int w, const int h)
@@ -92,9 +99,15 @@ window::~window()
     glfwTerminate();
 }
 
-void window::swap_buffers() { glfwSwapBuffers(_window); }
+void window::swap_buffers()
+{
+    glfwSwapBuffers(_window);
+}
 
-bool window::should_close() const { return glfwWindowShouldClose(_window); }
+bool window::should_close() const
+{
+    return glfwWindowShouldClose(_window);
+}
 
 void window::poll_events()
 {
@@ -104,8 +117,8 @@ void window::poll_events()
 void window::late_update()
 {
     // update fps in window title
-    const float current_fps = game::instance().get_fps();
-    if (current_fps == 0.0f)
+    const int current_fps = game::instance().get_fps();
+    if (current_fps == 0)
         return;
     const std::string title = "World fps " + std::to_string(current_fps);
     glfwSetWindowTitle(get_native(), title.c_str());
