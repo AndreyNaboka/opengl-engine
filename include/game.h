@@ -17,8 +17,7 @@ public:
 
    const double get_delta_time() { return _delta_time; };
    const double get_fps() { return _fps; };
-   const unsigned int get_target_fps() const { return _target_fps; }
-   const float get_target_fps_time() const { 1.0 / get_target_fps(); }
+   const float get_target_fps_time() const { 1.0f / _target_fps; }
    const bool is_need_update_frame() const { return _need_update_frame; }
 
 private:
@@ -34,5 +33,5 @@ private:
    bool _need_update_frame = false;
    float _delta_time = 0.0f;
    float _fps_timer = 0.0f;
-   unsigned int _target_fps = 120;
+   static const unsigned int _target_fps = 120;
 };
