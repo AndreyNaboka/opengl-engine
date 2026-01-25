@@ -1,4 +1,5 @@
 #include "window.h"
+#include "game.h"
 #include "logger.h"
 
 std::optional<window::wnd_ptr> window::create(const std::string &title, const int w, const int h)
@@ -95,4 +96,17 @@ void window::swap_buffers() { glfwSwapBuffers(_window); }
 
 bool window::should_close() const { return glfwWindowShouldClose(_window); }
 
-void window::poll_events() { glfwPollEvents(); }
+void window::poll_events()
+{
+    glfwPollEvents();
+}
+
+void window::late_update()
+{
+    // update fps in window title
+    const float current_fps = game::instance().get_fps();
+    if (current_fps == 0.0f)
+        return;
+    const std::string title = "World fps " + std::to_string(current_fps);
+    glfwSetWindowTitle(get_native(), title.c_str());
+}

@@ -119,7 +119,7 @@ int main()
 		glBindVertexArray(0);
 		// ------------------------------------------------------------
 
-		update_fps(main_wnd->get_native());
+		main_wnd->late_update();
 		game::instance().update();
 
 		main_wnd->swap_buffers();
@@ -129,15 +129,6 @@ int main()
 	glDeleteBuffers(1, &vbo);
 	glfwTerminate();
 	return 0;
-}
-
-void update_fps(GLFWwindow *window)
-{
-	const float current_fps = game::instance().get_fps();
-	if (current_fps == 0.0f)
-		return;
-	const std::string title = "World fps " + std::to_string(current_fps);
-	glfwSetWindowTitle(window, title.c_str());
 }
 
 void render_prepare(GLuint &ret_vao, GLuint &ret_vbo)
