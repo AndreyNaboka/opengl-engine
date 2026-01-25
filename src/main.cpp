@@ -26,13 +26,11 @@
 // declare fusnctions ---------------
 void render_prepare(GLuint &ret_vao, GLuint &ret_vbo);
 void dump_system_info();
-void update_fps(GLFWwindow *window);
 // ---------------------------------
 
 // global vars ---------------------
 std::shared_ptr<camera> main_camera;
 std::shared_ptr<light> global_light;
-bool keys[1024] = {};
 // ---------------------------------
 
 int main()
