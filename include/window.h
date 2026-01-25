@@ -22,6 +22,7 @@ public:
     void late_update();
     void add_input_subscriber(input_system_subscriber *s) { _input_subscribers.push_back(s); };
     ~window();
+
 private:
     window(GLFWwindow *wnd, const std::string &title, const int w, const int h);
     static void key_callback(GLFWwindow *wnd, int key, int scancode, int action, int mods);

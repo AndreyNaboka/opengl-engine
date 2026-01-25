@@ -79,19 +79,33 @@ void camera::on_scroll(double x_offset, double y_offset)
       _zoom = 45.0f;
 }
 
+void camera::update()
+{
+   if (_move_forward)
+      move_camera(camera_direction::FORWARD);
+   if (_move_backward)
+      move_camera(camera_direction::BACKWARD);
+   if (_move_left)
+      move_camera(camera_direction::LEFT);
+   if (_move_right)
+      move_camera(camera_direction::RIGHT);
+
+   _move_forward = _move_backward = _move_left = _move_right = false;
+}
+
 void camera::on_key(int code, int scancode, int action, int mods)
 {
-   if (action == GLFW_PRESS || action == GLFW_REPEAT)
-   {
-      if (code == GLFW_KEY_W)
-         move_camera(camera::camera_direction::FORWARD);
-      if (code == GLFW_KEY_S)
-         move_camera(camera::camera_direction::BACKWARD);
-      if (code == GLFW_KEY_A)
-         move_camera(camera::camera_direction::LEFT);
-      if (code == GLFW_KEY_D)
-         move_camera(camera::camera_direction::RIGHT);
-   }
+   if (action != GLFW_PRESS && action != GLFW_REPEAT)
+      return;
+
+   if (code == GLFW_KEY_W)
+      _move_forward = true;
+   if (code == GLFW_KEY_S)
+      _move_backward = true;
+   if (code == GLFW_KEY_A)
+      _move_left = true;
+   if (code == GLFW_KEY_D)
+      _move_right = true;
 }
 
 const glm::mat4 &camera::get_view_matrix()

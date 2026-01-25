@@ -81,6 +81,8 @@ int main()
 	{
 		main_wnd->poll_events();
 
+		main_camera->update();
+
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

@@ -25,6 +25,8 @@ public:
    virtual void on_mouse(double xpos, double ypos) override;
    virtual void on_scroll(double xoffset, double yoffset) override;
 
+   void update();
+
    const glm::mat4 &get_proj_matrix() const { return _proj_matrix; }
    const glm::mat4 &get_view_matrix();
 
@@ -52,4 +54,9 @@ private:
    bool _first_mouse_move = true;
    float _last_x_mouse = 0.0f;
    float _last_y_mouse = 0.0f;
+
+   bool _move_left = false;
+   bool _move_right = false;
+   bool _move_forward = false;
+   bool _move_backward = false;
 };
