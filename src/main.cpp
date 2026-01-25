@@ -24,11 +24,7 @@
 #pragma clang diagnostic pop
 
 // declare fusnctions ---------------
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
-void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void render_prepare(GLuint &ret_vao, GLuint &ret_vbo);
-void set_viewport(GLFWwindow *window);
 void dump_system_info();
 void update_fps(GLFWwindow *window);
 // ---------------------------------
@@ -37,9 +33,6 @@ void update_fps(GLFWwindow *window);
 std::shared_ptr<camera> main_camera;
 std::shared_ptr<light> global_light;
 bool keys[1024] = {};
-float last_x = WINDOW_WIDTH * 0.5f;
-float last_y = WINDOW_HEIGHT * 0.5f;
-bool first_mouse_move = true;
 // ---------------------------------
 
 int main()
@@ -145,43 +138,6 @@ void update_fps(GLFWwindow *window)
 		return;
 	const std::string title = "World fps " + std::to_string(current_fps);
 	glfwSetWindowTitle(window, title.c_str());
-}
-
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
-{
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GL_TRUE);
-
-	if (key >= 0 && key < 1024)
-	{
-		if (action == GLFW_PRESS)
-			keys[key] = true;
-		else if (action == GLFW_RELEASE)
-			keys[key] = false;
-	}
-}
-
-void mouse_callback(GLFWwindow *window, double xpos, double ypos)
-{
-	if (first_mouse_move)
-	{
-		last_x = xpos;
-		last_y = ypos;
-		first_mouse_move = false;
-	}
-
-	const float x_offset = xpos - last_x;
-	const float y_offset = last_y - ypos;
-
-	last_x = xpos;
-	last_y = ypos;
-
-	main_camera->mouse_move(x_offset, y_offset);
-}
-
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
-{
-	main_camera->mouse_move(xoffset, yoffset);
 }
 
 void render_prepare(GLuint &ret_vao, GLuint &ret_vbo)

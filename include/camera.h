@@ -20,11 +20,10 @@ public:
    void set_speed(const float new_speed) { _speed = new_speed; }
    void set_mouse_sensitivity(const float mouse_sensitivity) { _mouse_sensitivity = mouse_sensitivity; }
    void mouse_move(const float x, const float y, bool constrain_pitch = true);
-   void mouse_scroll(const float x_offset, const float y_offset);
 
    virtual void on_key(int code, int scancode, int action, int mods) override;
-   virtual void on_mouse(double xpos, double ypos) override {}
-   virtual void on_scroll(double xoffset, double yoffset) override {}
+   virtual void on_mouse(double xpos, double ypos) override;
+   virtual void on_scroll(double xoffset, double yoffset) override;
 
    const glm::mat4 &get_proj_matrix() const { return _proj_matrix; }
    const glm::mat4 &get_view_matrix();
@@ -49,4 +48,8 @@ private:
    glm::vec3 _up;
    glm::vec3 _world_up;
    glm::vec3 _right;
+
+   bool _first_mouse_move = true;
+   float _last_x_mouse = 0.0f;
+   float _last_y_mouse = 0.0f;
 };

@@ -55,12 +55,6 @@ void window::key_callback(GLFWwindow *wnd, int key, int scancode, int action, in
         glfwSetWindowShouldClose(wnd, true);
 
     auto *self = static_cast<window *>(glfwGetWindowUserPointer(wnd));
-    if (!self)
-    {
-        logger::info("Can't get glfwGetWindowUserPointer!");
-        return;
-    }
-
     for (auto &subscriber : self->_input_subscribers)
     {
         subscriber->on_key(key, scancode, action, mods);
@@ -74,6 +68,11 @@ void window::framebuffer_resize_callback(GLFWwindow *wnd, int width, int height)
 
 void window::mouse_callback(GLFWwindow *wnd, double xpos, double ypos)
 {
+    auto *self = static_cast<window *>(glfwGetWindowUserPointer(wnd));
+    for (auto &subscriber : self->_input_subscribers)
+    {
+        subscriber->on_mouse(xpos, ypos);
+    }
 }
 
 void window::scroll_callback(GLFWwindow *wnd, double xoffset, double yoffset)

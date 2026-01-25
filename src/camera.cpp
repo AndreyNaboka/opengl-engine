@@ -52,7 +52,24 @@ void camera::mouse_move(const float x, const float y, bool constrain_pitch)
    update_camera_vectors();
 }
 
-void camera::mouse_scroll(const float x_offset, const float y_offset)
+void camera::on_mouse(double xpos, double ypos)
+{
+   if (_first_mouse_move)
+   {
+      _last_x_mouse = xpos;
+      _last_y_mouse = ypos;
+      _first_mouse_move = false;
+   }
+   const float x_offset = xpos - _last_x_mouse;
+   const float y_offset = _last_y_mouse - ypos;
+
+   _last_x_mouse = xpos;
+   _last_y_mouse = ypos;
+
+   mouse_move(x_offset, y_offset);
+}
+
+void camera::on_scroll(double x_offset, double y_offset)
 {
    if (_zoom >= 1.0f && _zoom <= 45.0f)
       _zoom -= y_offset;
