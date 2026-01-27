@@ -112,9 +112,9 @@ int main()
 		glBindVertexArray(0);
 
 		main_wnd->late_update();
-
 		main_wnd->swap_buffers();
-
+		
+		game::instance().update();
 		game::instance().end_update();
 	}
 

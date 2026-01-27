@@ -18,21 +18,38 @@ void game::end_update()
 {
    _end_frame_time = std::chrono::high_resolution_clock::now();
    _delta_time = std::chrono::duration<float>(_end_frame_time - _start_frame_time).count();
-   update_fps();
-   if (_delta_time < get_target_fps_time())
+   // if (_delta_time < _target_fps_time)
+   // {
+   //    std::this_thread::sleep_for(std::chrono::duration<float>(_target_fps_time - _delta_time));
+   // }
+}
+
+void game::update()
+{
+   auto now = std::chrono::high_resolution_clock::now();
+   _frame_times.push(now);
+   while (_frame_times.size() > 1)
    {
-      std::this_thread::sleep_for(std::chrono::duration<float>(get_target_fps_time() - _delta_time));
+      auto duration = std::chrono::duration_cast<std::chrono::seconds>(now - _frame_times.front()).count();
+      if (duration >= 1)
+      {
+         _frame_times.pop();
+      }
+      else
+      {
+         break;
+      }
    }
 }
 
-void game::update_fps()
+const double game::get_fps()
 {
-   _number_of_frames++;
-   _fps_timer += _delta_time;
-   if (_fps_timer >= 1.0)
-   {
-      _fps = static_cast<int>(_number_of_frames / _fps_timer);
-      _number_of_frames = 0;
-      _fps_timer = 0.0;
-   }
+   if (_frame_times.size() <= 1)
+      return 0.0f;
+   auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                       _frame_times.back() - _frame_times.front())
+                       .count();
+   if (duration == 0)
+      return 0.0f;
+   return static_cast<float>(_frame_times.size() - 1) * 1'000'000.0f / static_cast<float>(duration);
 }

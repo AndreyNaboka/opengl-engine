@@ -116,6 +116,12 @@ void window::poll_events()
 
 void window::late_update()
 {
+    static auto last_log = std::chrono::high_resolution_clock::now();
+    auto now = std::chrono::high_resolution_clock::now();
+    if (std::chrono::duration_cast<std::chrono::seconds>(now - last_log).count() < 1)
+        return;
+
+    last_log = now;
     // update fps in window title
     const int current_fps = game::instance().get_fps();
     if (current_fps == 0)
