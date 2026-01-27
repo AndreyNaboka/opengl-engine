@@ -18,10 +18,6 @@ void game::end_update()
 {
    _end_frame_time = std::chrono::high_resolution_clock::now();
    _delta_time = std::chrono::duration<float>(_end_frame_time - _start_frame_time).count();
-   // if (_delta_time < _target_fps_time)
-   // {
-   //    std::this_thread::sleep_for(std::chrono::duration<float>(_target_fps_time - _delta_time));
-   // }
 }
 
 void game::update()
