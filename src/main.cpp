@@ -15,7 +15,6 @@
 #include "settings.h"
 #include "camera.h"
 #include "game.h"
-#include "light.h"
 #include "window.h"
 #include "input_manager.h"
 
