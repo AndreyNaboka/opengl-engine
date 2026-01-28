@@ -25,7 +25,6 @@
 #pragma clang diagnostic pop
 
 void render_prepare(GLuint &ret_vao, GLuint &ret_vbo);
-void dump_system_info();
 
 int main()
 {
@@ -41,8 +40,6 @@ int main()
 							  { input.on_key_event(k, a, m); });
 
 	camera main_camera;
-
-	dump_system_info();
 
 	GLuint vao = 0;
 	GLuint vbo = 0;
@@ -77,9 +74,7 @@ int main()
 		main_wnd.poll_events();
 		game::instance().begin_update();
 
-		input.update();
-
-		if (input.is_action_active(input_manager::input_action::QUIT))
+		if (input.was_action_triggered(input_manager::input_action::QUIT))
 			break;
 
 		if (input.is_action_active(input_manager::input_action::MOVE_FORWARD))
@@ -93,6 +88,8 @@ int main()
 
 		if (input.is_action_active(input_manager::input_action::MOVE_RIGHT))
 			main_camera.move_camera(camera::camera_direction::RIGHT);
+
+		input.update();
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -205,18 +202,4 @@ void render_prepare(GLuint &ret_vao, GLuint &ret_vbo)
 
 	ret_vao = vao;
 	ret_vbo = vbo;
-}
-
-void dump_system_info()
-{
-	const std::string version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
-	const std::string vendor = reinterpret_cast<const char *>(glGetString(GL_VENDOR));
-	const std::string renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
-	const std::string glsl = reinterpret_cast<const char *>(glGetString(GL_SHADING_LANGUAGE_VERSION));
-
-	logger::info("OpenGL info");
-	logger::info("  version  :  " + version);
-	logger::info("  vendor   :  " + vendor);
-	logger::info("  renderer :  " + renderer);
-	logger::info("  glsl     :  " + glsl);
 }
