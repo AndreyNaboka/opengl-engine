@@ -24,15 +24,8 @@
 
 #pragma clang diagnostic pop
 
-// declare fusnctions ---------------
 void render_prepare(GLuint &ret_vao, GLuint &ret_vbo);
 void dump_system_info();
-// ---------------------------------
-
-// global vars ---------------------
-std::shared_ptr<camera> main_camera;
-std::shared_ptr<light> global_light;
-// ---------------------------------
 
 int main()
 {
@@ -47,9 +40,7 @@ int main()
 	main_wnd.set_key_callback([&input](int k, int s, int a, int m)
 							  { input.on_key_event(k, a, m); });
 
-	main_camera = std::make_shared<camera>();
-
-	global_light = std::make_shared<light>(glm::vec3(1.2f, 1.0f, 2.0f), "main");
+	camera main_camera;
 
 	dump_system_info();
 
@@ -79,7 +70,7 @@ int main()
 		glm::vec3(-1.3f, 1.0f, -1.5f)};
 
 	// transform matrix prepare
-	const glm::mat4 projection = main_camera->get_proj_matrix();
+	const glm::mat4 projection = main_camera.get_proj_matrix();
 
 	while (!main_wnd.should_close())
 	{
@@ -92,16 +83,16 @@ int main()
 			break;
 
 		if (input.is_action_active(input_manager::input_action::MOVE_FORWARD))
-			main_camera->move_camera(camera::camera_direction::FORWARD);
+			main_camera.move_camera(camera::camera_direction::FORWARD);
 
 		if (input.is_action_active(input_manager::input_action::MOVE_BACKWARD))
-			main_camera->move_camera(camera::camera_direction::BACKWARD);
+			main_camera.move_camera(camera::camera_direction::BACKWARD);
 
 		if (input.is_action_active(input_manager::input_action::MOVE_LEFT))
-			main_camera->move_camera(camera::camera_direction::LEFT);
+			main_camera.move_camera(camera::camera_direction::LEFT);
 
 		if (input.is_action_active(input_manager::input_action::MOVE_RIGHT))
-			main_camera->move_camera(camera::camera_direction::RIGHT);
+			main_camera.move_camera(camera::camera_direction::RIGHT);
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -112,7 +103,7 @@ int main()
 		const GLuint view_uniform = shader->get_uniform_loc("view");
 		const GLuint projection_uniform = shader->get_uniform_loc("projection");
 
-		glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(main_camera->get_view_matrix()));
+		glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(main_camera.get_view_matrix()));
 		glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
 
 		shader->bind();
