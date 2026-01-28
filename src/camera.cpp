@@ -42,6 +42,18 @@ void camera::move_camera(const camera::camera_direction dir)
 
 void camera::mouse_move(const float x, const float y, bool constrain_pitch)
 {
+   if (_first_mouse_move)
+   {
+      _last_x_mouse = x;
+      _last_y_mouse = y;
+      _first_mouse_move = false;
+   }
+   const float x_offset = x - _last_x_mouse;
+   const float y_offset = _last_y_mouse - y;
+
+   _last_x_mouse = x;
+   _last_y_mouse = y;
+
    _yaw += x * _mouse_sensitivity;
    _pitch += y * _mouse_sensitivity;
 
@@ -49,57 +61,6 @@ void camera::mouse_move(const float x, const float y, bool constrain_pitch)
       _pitch = std::clamp(_pitch, -89.0f, 89.0f);
 
    update_camera_vectors();
-}
-
-void camera::on_mouse(double xpos, double ypos)
-{
-   if (_first_mouse_move)
-   {
-      _last_x_mouse = xpos;
-      _last_y_mouse = ypos;
-      _first_mouse_move = false;
-   }
-   const float x_offset = xpos - _last_x_mouse;
-   const float y_offset = _last_y_mouse - ypos;
-
-   _last_x_mouse = xpos;
-   _last_y_mouse = ypos;
-
-   mouse_move(x_offset, y_offset);
-}
-
-void camera::on_scroll(double x_offset, double y_offset)
-{
-   if (_zoom >= 1.0f && _zoom <= 45.0f)
-      _zoom -= y_offset;
-   if (_zoom < 1.0f)
-      _zoom = 1.0f;
-   if (_zoom > 45.0f)
-      _zoom = 45.0f;
-}
-
-void camera::update()
-{
-   if (_move_forward)
-      move_camera(camera_direction::FORWARD);
-   if (_move_backward)
-      move_camera(camera_direction::BACKWARD);
-   if (_move_left)
-      move_camera(camera_direction::LEFT);
-   if (_move_right)
-      move_camera(camera_direction::RIGHT);
-}
-
-void camera::on_key(int code, int scancode, int action, int mods)
-{
-   if (code == GLFW_KEY_W)
-      (action == GLFW_PRESS || action == GLFW_REPEAT) ? _move_forward = true : _move_forward = false;
-   if (code == GLFW_KEY_S)
-      (action == GLFW_PRESS || action == GLFW_REPEAT) ? _move_backward = true : _move_backward = false;
-   if (code == GLFW_KEY_A)
-      (action == GLFW_PRESS || action == GLFW_REPEAT) ? _move_left = true : _move_left = false;
-   if (code == GLFW_KEY_D)
-      (action == GLFW_PRESS || action == GLFW_REPEAT) ? _move_right = true : _move_right = false;
 }
 
 const glm::mat4 &camera::get_view_matrix()

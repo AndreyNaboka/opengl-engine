@@ -2,9 +2,8 @@
 
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
-#include "input_system/input_system_subscriber.h"
 
-class camera : public input_system_subscriber
+class camera
 {
 public:
    enum class camera_direction
@@ -20,19 +19,14 @@ public:
    void set_speed(const float new_speed) { _speed = new_speed; }
    void set_mouse_sensitivity(const float mouse_sensitivity) { _mouse_sensitivity = mouse_sensitivity; }
    void mouse_move(const float x, const float y, bool constrain_pitch = true);
-
-   virtual void on_key(int code, int scancode, int action, int mods) override;
-   virtual void on_mouse(double xpos, double ypos) override;
-   virtual void on_scroll(double xoffset, double yoffset) override;
-
    void update();
 
    const glm::mat4 &get_proj_matrix() const { return _proj_matrix; }
    const glm::mat4 &get_view_matrix();
+   void move_camera(const camera::camera_direction dir);
 
 private:
    void update_camera_vectors();
-   void move_camera(const camera::camera_direction dir);
 
 private:
    float _yaw = -90.0f;

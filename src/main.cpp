@@ -17,6 +17,7 @@
 #include "game.h"
 #include "light.h"
 #include "window.h"
+#include "input_manager.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
@@ -35,15 +36,18 @@ std::shared_ptr<light> global_light;
 
 int main()
 {
-	window::wnd_ptr main_wnd = *(window::create(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT));
-	if (!main_wnd)
-	{
-		logger::error("Can't create main window. Exit.");
-		return EXIT_FAILURE;
-	}
+	input_manager input;
+	input.bind_key(GLFW_KEY_W, input_manager::input_action::MOVE_FORWARD);
+	input.bind_key(GLFW_KEY_S, input_manager::input_action::MOVE_BACKWARD);
+	input.bind_key(GLFW_KEY_A, input_manager::input_action::MOVE_LEFT);
+	input.bind_key(GLFW_KEY_D, input_manager::input_action::MOVE_RIGHT);
+	input.bind_key(GLFW_KEY_ESCAPE, input_manager::input_action::QUIT);
+
+	window main_wnd(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT);
+	main_wnd.set_key_callback([&input](int k, int s, int a, int m)
+							  { input.on_key_event(k, a, m); });
 
 	main_camera = std::make_shared<camera>();
-	main_wnd->add_input_subscriber(main_camera.get());
 
 	global_light = std::make_shared<light>(glm::vec3(1.2f, 1.0f, 2.0f), "main");
 
@@ -77,12 +81,27 @@ int main()
 	// transform matrix prepare
 	const glm::mat4 projection = main_camera->get_proj_matrix();
 
-	while (!main_wnd->should_close())
+	while (!main_wnd.should_close())
 	{
-		main_wnd->poll_events();
+		main_wnd.poll_events();
 		game::instance().begin_update();
 
-		main_camera->update();
+		input.update();
+
+		if (input.is_action_active(input_manager::input_action::QUIT))
+			break;
+
+		if (input.is_action_active(input_manager::input_action::MOVE_FORWARD))
+			main_camera->move_camera(camera::camera_direction::FORWARD);
+
+		if (input.is_action_active(input_manager::input_action::MOVE_BACKWARD))
+			main_camera->move_camera(camera::camera_direction::BACKWARD);
+
+		if (input.is_action_active(input_manager::input_action::MOVE_LEFT))
+			main_camera->move_camera(camera::camera_direction::LEFT);
+
+		if (input.is_action_active(input_manager::input_action::MOVE_RIGHT))
+			main_camera->move_camera(camera::camera_direction::RIGHT);
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -111,16 +130,15 @@ int main()
 		}
 		glBindVertexArray(0);
 
-		main_wnd->late_update();
-		main_wnd->swap_buffers();
-		
+		main_wnd.late_update();
+		main_wnd.swap_buffers();
+
 		game::instance().update();
 		game::instance().end_update();
 	}
 
 	glDeleteVertexArrays(1, &vao);
 	glDeleteBuffers(1, &vbo);
-	glfwTerminate();
 	return 0;
 }
 

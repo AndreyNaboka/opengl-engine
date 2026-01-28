@@ -2,66 +2,51 @@
 #include "game.h"
 #include "logger.h"
 
-std::optional<window::wnd_ptr> window::create(const std::string &title, const int w, const int h)
+static window *get_window_ptr(GLFWwindow *wnd)
 {
-    if (w <= 0 || h <= 0)
-        return std::nullopt;
+    return static_cast<window *>(glfwGetWindowUserPointer(wnd));
+}
 
+window::window(const std::string &title, const int w, const int h)
+{
     if (!glfwInit())
     {
         logger::error("Failed to initialize GLFW");
-        return std::nullopt;
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-    glfwWindowHint(GLFW_SAMPLES, 4);
 
-    GLFWwindow *native_window = glfwCreateWindow(w, h, title.c_str(), nullptr, nullptr);
-    if (!native_window)
+    _native_window = glfwCreateWindow(w, h, title.c_str(), nullptr, nullptr);
+    if (!_native_window)
     {
         logger::error("Failed to create GLFW window");
         glfwTerminate();
-        return std::nullopt;
     }
 
-    glfwMakeContextCurrent(native_window);
-    glfwSetKeyCallback(native_window, key_callback);
-    glfwSetCursorPosCallback(native_window, mouse_callback);
-    glfwSetScrollCallback(native_window, scroll_callback);
-    glfwSetFramebufferSizeCallback(native_window, framebuffer_resize_callback);
-    glfwSetInputMode(native_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwMakeContextCurrent(_native_window);
+    glfwSetWindowUserPointer(_native_window, this);
+    glfwSetFramebufferSizeCallback(_native_window, framebuffer_resize_callback);
+    glfwSetInputMode(_native_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         logger::error("Failed to initialize GLAD");
-        return std::nullopt;
     }
 
     int framebuffer_width = w;
     int frame_buffer_height = h;
-    glfwGetFramebufferSize(native_window, &framebuffer_width, &frame_buffer_height);
+    glfwGetFramebufferSize(_native_window, &framebuffer_width, &frame_buffer_height);
     glViewport(0, 0, framebuffer_width, frame_buffer_height);
 
-    glfwSwapInterval(1);
-
-    window::wnd_ptr w_ptr(new window(native_window, title, w, h));
-    glfwSetWindowUserPointer(native_window, w_ptr.get());
-    return w_ptr;
-}
-
-void window::key_callback(GLFWwindow *wnd, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(wnd, true);
-
-    auto *self = static_cast<window *>(glfwGetWindowUserPointer(wnd));
-    for (auto &subscriber : self->_input_subscribers)
-    {
-        subscriber->on_key(key, scancode, action, mods);
-    }
+    glfwSetKeyCallback(_native_window, key_callback);
+    glfwSetCursorPosCallback(_native_window, mouse_callback);
+    glfwSetScrollCallback(_native_window, scroll_callback);
 }
 
 void window::framebuffer_resize_callback(GLFWwindow *wnd, int width, int height)
@@ -71,42 +56,35 @@ void window::framebuffer_resize_callback(GLFWwindow *wnd, int width, int height)
 
 void window::mouse_callback(GLFWwindow *wnd, double xpos, double ypos)
 {
-    auto *self = static_cast<window *>(glfwGetWindowUserPointer(wnd));
-    for (auto &subscriber : self->_input_subscribers)
-    {
-        subscriber->on_mouse(xpos, ypos);
-    }
 }
 
 void window::scroll_callback(GLFWwindow *wnd, double xoffset, double yoffset)
 {
-    auto *self = static_cast<window *>(glfwGetWindowUserPointer(wnd));
-    for (auto &subscriber : self->_input_subscribers)
-    {
-        subscriber->on_scroll(xoffset, yoffset);
-    }
 }
 
-window::window(GLFWwindow *wnd, const std::string &title, const int w, const int h)
-    : _window(wnd), _title(title), _width(w), _height(h)
+void window::key_callback(GLFWwindow *wnd, int key, int scancode, int action, int mods)
 {
-    _input_subscribers.reserve(10);
+    if (auto *self = get_window_ptr(wnd))
+    {
+        if (self->_key_cb)
+            self->_key_cb(key, scancode, action, mods);
+    }
 }
 
 window::~window()
 {
-    glfwDestroyWindow(_window);
+    glfwDestroyWindow(_native_window);
     glfwTerminate();
 }
 
 void window::swap_buffers()
 {
-    glfwSwapBuffers(_window);
+    glfwSwapBuffers(_native_window);
 }
 
 bool window::should_close() const
 {
-    return glfwWindowShouldClose(_window);
+    return glfwWindowShouldClose(_native_window);
 }
 
 void window::poll_events()

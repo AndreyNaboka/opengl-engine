@@ -29,5 +29,5 @@ private:
    std::chrono::high_resolution_clock::time_point _start_frame_time;
    float _delta_time = 0.0f;
    static constexpr float _target_fps_time = 1.0f / 120.0f;
-   std::queue<std::chrono::high_resolution_clock::time_point> _frame_times;
+   std::deque<std::chrono::high_resolution_clock::time_point> _frame_times;
 };
