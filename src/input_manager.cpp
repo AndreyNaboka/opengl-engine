@@ -6,6 +6,22 @@ void input_manager::bind_key(int glfw_key, input_action act)
     _key_bindings[glfw_key] = act;
 }
 
+void input_manager::bind_mouse_button(int glfw_button, input_action act)
+{
+}
+
+void input_manager::on_mouse_button(int button, int action, int mods)
+{
+}
+
+void input_manager::on_mouse_move(double xpos, double ypos)
+{
+}
+
+void input_manager::on_mouse_scroll(double xoffset, double yoffset)
+{
+}
+
 void input_manager::on_key_event(int key, int key_action, int mods)
 {
     const auto it = _key_bindings.find(key);
