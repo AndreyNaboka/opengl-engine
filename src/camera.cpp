@@ -42,18 +42,6 @@ void camera::move_camera(const camera::camera_direction dir)
 
 void camera::mouse_move(const float x, const float y, bool constrain_pitch)
 {
-   if (_first_mouse_move)
-   {
-      _last_x_mouse = x;
-      _last_y_mouse = y;
-      _first_mouse_move = false;
-   }
-   const float x_offset = x - _last_x_mouse;
-   const float y_offset = _last_y_mouse - y;
-
-   _last_x_mouse = x;
-   _last_y_mouse = y;
-
    _yaw += x * _mouse_sensitivity;
    _pitch += y * _mouse_sensitivity;
 
