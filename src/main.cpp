@@ -17,6 +17,7 @@
 #include "game.h"
 #include "window.h"
 #include "input_manager.h"
+#include "scene.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"

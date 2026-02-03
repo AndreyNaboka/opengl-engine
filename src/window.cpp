@@ -35,9 +35,7 @@ window::window(const std::string &title, const int w, const int h)
     glfwSetInputMode(_native_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
         logger::error("Failed to initialize GLAD");
-    }
 
     int framebuffer_width = w;
     int frame_buffer_height = h;
