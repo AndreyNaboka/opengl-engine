@@ -94,7 +94,7 @@ int main()
 		if (input.is_action_active(input_manager::input_action::MOVE_RIGHT))
 			main_camera.move_camera(camera::camera_direction::RIGHT);
 
-		const input_manager::mouse_state cms = input.get_mouse_state();
+		const input_manager::mouse_state &cms = input.get_mouse_state();
 		if (cms.delta_x != 0.0 || cms.delta_y != 0.0)
 			main_camera.mouse_move(cms.delta_x, cms.delta_y);
 
