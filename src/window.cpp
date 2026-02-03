@@ -56,19 +56,23 @@ void window::framebuffer_resize_callback(GLFWwindow *wnd, int width, int height)
 
 void window::mouse_callback(GLFWwindow *wnd, double xpos, double ypos)
 {
+    if (auto *self = get_window_ptr(wnd))
+        if (self->_mouse_cb)
+            self->_mouse_cb(xpos, ypos);
 }
 
 void window::scroll_callback(GLFWwindow *wnd, double xoffset, double yoffset)
 {
+    if (auto *self = get_window_ptr(wnd))
+        if (self->_scroll_cb)
+            self->_scroll_cb(xoffset, yoffset);
 }
 
 void window::key_callback(GLFWwindow *wnd, int key, int scancode, int action, int mods)
 {
     if (auto *self = get_window_ptr(wnd))
-    {
         if (self->_key_cb)
             self->_key_cb(key, scancode, action, mods);
-    }
 }
 
 window::~window()
