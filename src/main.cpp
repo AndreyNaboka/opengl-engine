@@ -44,6 +44,7 @@ int main()
 	main_wnd.set_scroll_callback([&input](double xoffset, double yoffset)
 								 { input.on_mouse_scroll(xoffset, yoffset); });
 
+	scene main_scene("main scene");
 	camera main_camera;
 
 	GLuint vao = 0;
@@ -100,8 +101,7 @@ int main()
 
 		input.update();
 
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		main_scene.pre_render();
 
 		texture->bind();
 

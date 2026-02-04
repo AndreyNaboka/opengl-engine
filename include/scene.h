@@ -10,6 +10,7 @@ class scene
 public:
     explicit scene(const std::string &name) { _name = name; }
     void add_render_object(render_object *obj) { _render_objects_list.emplace_back(obj); }
+    void pre_render();
     void render();
 
 private:
