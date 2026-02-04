@@ -1,5 +1,13 @@
-#include "scene.h"
 #include <glad/glad.h>
+
+#include "scene.h"
+#include "render_object.h"
+
+scene::scene(const std::string &name)
+{
+    _name = name;
+    _render_objects_list.reserve(100);
+}
 
 void scene::pre_render()
 {
@@ -9,4 +17,8 @@ void scene::pre_render()
 
 void scene::render()
 {
+    for (auto obj : _render_objects_list)
+    {
+        obj->render();
+    }
 }

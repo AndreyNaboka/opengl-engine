@@ -18,6 +18,7 @@
 #include "window.h"
 #include "input_manager.h"
 #include "scene.h"
+#include "scene_loader.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
@@ -44,7 +45,10 @@ int main()
 	main_wnd.set_scroll_callback([&input](double xoffset, double yoffset)
 								 { input.on_mouse_scroll(xoffset, yoffset); });
 
+	scene_loader sl;
 	scene main_scene("main scene");
+	sl.load_scene(main_scene);
+	
 	camera main_camera;
 
 	GLuint vao = 0;
@@ -102,7 +106,7 @@ int main()
 		input.update();
 
 		main_scene.pre_render();
-
+		main_scene.render();
 		texture->bind();
 
 		const GLuint model_uniform = shader->get_uniform_loc("model");
