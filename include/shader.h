@@ -1,26 +1,21 @@
 #pragma once
-
 #include <string>
-#include <memory>
 #include <unordered_map>
-
-#include "glad/glad.h"
+#include <glm/glm.hpp>
 
 class shader
 {
 public:
-   static std::shared_ptr<shader> create(const std::string &name, const std::string &vertex_code, const std::string &fragment_code);
-   void bind() { glUseProgram(_program); };
-   GLint get_uniform_loc(const std::string &name);
+   shader(const std::string &vertex_path, const std::string &fragment_path);
+   void use() const;
+
+   void set_mat4(const std::string &name, const glm::mat4 &mat) const;
+   void set_vec3(const std::string &name, const glm::vec3 &value) const;
+   void set_float(const std::string &name, float value) const;
+   void set_int(const std::string &name, int value) const;
 
 private:
-   shader(const std::string &name, const std::string &vertex_code, const std::string &fragment_code);
-
-private:
-   bool _is_inited = false;
-   std::unordered_map<std::string, GLint> _uniforms;
-   std::string _name;
-   std::string _fragment_code;
-   std::string _vertex_code;
-   GLuint _program = 0;
+   unsigned int _id;
+   mutable std::unordered_map<std::string, int> _uniform_cache;
+   int get_uniform_location(const std::string &name) const;
 };
