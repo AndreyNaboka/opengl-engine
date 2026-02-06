@@ -1,8 +1,5 @@
-
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
-
-// GLM
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
@@ -44,17 +41,6 @@ int main()
 
 	camera main_camera;
 
-	// // shaders
-	// std::shared_ptr<shader> shader = shader::create("simple", textured_vert_shader, textured_frag_shader);
-	// // textures
-	// std::shared_ptr<texture> texture = texture::create("grass", "/Users/andreynaboka/code/assets/textures/Ground_01.png");
-	// if (!texture)
-	// 	return -1;
-	// texture->load();
-
-	// transform matrix prepare
-	const glm::mat4 projection = main_camera.get_proj_matrix();
-
 	while (!main_wnd.should_close())
 	{
 		main_wnd.poll_events();
@@ -82,7 +68,6 @@ int main()
 		input.update();
 
 		main_scene.pre_render();
-		// main_scene.render();
 
 		main_wnd.late_update();
 		main_wnd.swap_buffers();
