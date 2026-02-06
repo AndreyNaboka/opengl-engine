@@ -30,6 +30,7 @@ window::window(const std::string &title, const int w, const int h)
     }
 
     glfwMakeContextCurrent(_native_window);
+    glfwSwapInterval(1);
     glfwSetWindowUserPointer(_native_window, this);
     glfwSetFramebufferSizeCallback(_native_window, framebuffer_resize_callback);
     glfwSetInputMode(_native_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
