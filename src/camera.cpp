@@ -4,9 +4,9 @@
 #include "glad/glad.h"
 #include <glfw/glfw3.h>
 
-camera::camera()
+camera::camera(const glm::vec3 &pos)
 {
-   _pos = glm::vec3(0.0f, 0.0f, 3.0f);
+   _pos = pos;
    _up = glm::vec3(0.0f, 1.0f, 0.0f);
    _front = glm::vec3(0.0f, 0.0f, -1.0f);
    _proj_matrix = glm::perspective(45.0f, WINDOW_ASPECT_RATIO, 0.1f, 100.0f);

@@ -15,7 +15,7 @@ public:
    };
 
 public:
-   camera();
+   camera(const glm::vec3 &pos);
    void set_speed(const float new_speed) { _speed = new_speed; }
    void set_mouse_sensitivity(const float mouse_sensitivity) { _mouse_sensitivity = mouse_sensitivity; }
    void mouse_move(const float x, const float y, bool constrain_pitch = true);
@@ -23,6 +23,7 @@ public:
 
    const glm::mat4 &get_proj_matrix() const { return _proj_matrix; }
    const glm::mat4 &get_view_matrix();
+   const glm::vec3 &get_pos() const { return _pos; }
    void move_camera(const camera::camera_direction dir);
 
 private:

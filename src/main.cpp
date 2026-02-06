@@ -38,8 +38,21 @@ int main()
 								 { input.on_mouse_scroll(xoffset, yoffset); });
 
 	scene main_scene;
+	camera main_camera({0.0f, 2.5f, 3.0f});
 
-	camera main_camera;
+	std::shared_ptr<shader> shader_phong = std::make_shared<shader>("/Users/andreynaboka/code/opengl-engine/assets/shaders/phong.vs", "/Users/andreynaboka/code/opengl-engine/assets/shaders/phong.fs");
+	std::shared_ptr<texture> ground_texture = texture::create("ground_texture", "/Users/andreynaboka/code/opengl-engine/assets/img/Ground_01.png");
+
+	ground_texture->load();
+
+	mesh_renderer ground_mesh = main_scene.create_ground_mesh();
+	ground_mesh.shader = shader_phong;
+	ground_mesh.texture = ground_texture;
+
+	transform ground_transform;
+	main_scene.add_entity(ground_transform, ground_mesh);
+
+	const glm::vec3 light_pos = {5.0f, 5.0f, 5.0f};
 
 	while (!main_wnd.should_close())
 	{
@@ -68,6 +81,10 @@ int main()
 		input.update();
 
 		main_scene.pre_render();
+		main_scene.render(main_camera.get_view_matrix(),
+						  main_camera.get_proj_matrix(),
+						  main_camera.get_pos(),
+						  light_pos);
 
 		main_wnd.late_update();
 		main_wnd.swap_buffers();

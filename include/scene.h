@@ -38,9 +38,12 @@ struct mesh_renderer
 class scene
 {
 public:
+    scene() { glEnable(GL_DEPTH_TEST); }
     void add_entity(const transform &t, const mesh_renderer &mr);
     void render(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &camera_pos, const glm::vec3 &light_pos);
     void pre_render();
+
+    mesh_renderer create_ground_mesh();
 
 private:
     struct entity
@@ -51,6 +54,3 @@ private:
     std::vector<entity> _entities;
     std::string _name;
 };
-
-mesh_renderer create_ground_mesh();
-mesh_renderer create_cubes_mesh();
