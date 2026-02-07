@@ -94,3 +94,9 @@ void window::poll_events()
     glfwPollEvents();
 }
 
+void window::set_fps(const int fps)
+{
+    char title[10];
+    snprintf(title, 10, "FPS: %i", fps);
+    glfwSetWindowTitle(_native_window, title);
+}

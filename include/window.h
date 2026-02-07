@@ -29,7 +29,8 @@ public:
     void set_key_callback(key_callback_proxy cb) { _key_cb = std::move(cb); }
     void set_mouse_callback(mouse_move_callback_proxy cb) { _mouse_cb = std::move(cb); }
     void set_scroll_callback(scroll_callback_proxy cb) { _scroll_cb = std::move(cb); }
-
+    void set_fps(const int fps);
+    
 private:
     static void key_callback(GLFWwindow *wnd, int key, int scancode, int action, int mods);
     static void framebuffer_resize_callback(GLFWwindow *wnd, int width, int height);

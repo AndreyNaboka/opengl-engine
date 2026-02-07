@@ -8,12 +8,13 @@
 #include "logger.h"
 #include "shader.h"
 #include "texture.h"
-#include "settings.h"
 #include "camera.h"
 #include "window.h"
 #include "input_manager.h"
 #include "scene.h"
 #include "timer.h"
+#include "fps_counter.h"
+#include "settings.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
@@ -56,10 +57,13 @@ int main()
 
 	timer timer;
 
+	fps_counter fps_counter;
+	auto last_log = std::chrono::high_resolution_clock::now();
+
 	while (!main_wnd.should_close())
 	{
 		const float delta_time = timer.mark();
-		
+
 		// для физики использовать константный dt
 
 		main_camera.set_delta_time(delta_time);
@@ -94,6 +98,14 @@ int main()
 						  main_camera.get_pos());
 
 		main_wnd.swap_buffers();
+
+		fps_counter.tick();
+		auto now = std::chrono::high_resolution_clock::now();
+		if (std::chrono::duration_cast<std::chrono::seconds>(now - last_log).count() >= 1)
+		{
+			main_wnd.set_fps(static_cast<int>(fps_counter.get_fps()));
+			last_log = now;
+		}
 	}
 	return 0;
 }
