@@ -25,7 +25,6 @@ public:
     void poll_events();
     bool should_close() const;
     void swap_buffers();
-    void late_update();
 
     void set_key_callback(key_callback_proxy cb) { _key_cb = std::move(cb); }
     void set_mouse_callback(mouse_move_callback_proxy cb) { _mouse_cb = std::move(cb); }

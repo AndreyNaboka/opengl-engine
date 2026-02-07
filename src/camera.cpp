@@ -1,4 +1,3 @@
-#include "game.h"
 #include "camera.h"
 #include "settings.h"
 #include "glad/glad.h"
@@ -17,7 +16,7 @@ camera::camera(const glm::vec3 &pos)
 
 void camera::move_camera(const camera::camera_direction dir)
 {
-   const float velocity = _speed * game::instance().get_delta_time();
+   const float velocity = _delta_time * _speed;
 
    switch (dir)
    {

@@ -10,10 +10,10 @@
 #include "texture.h"
 #include "settings.h"
 #include "camera.h"
-#include "game.h"
 #include "window.h"
 #include "input_manager.h"
 #include "scene.h"
+#include "timer.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
@@ -54,10 +54,17 @@ int main()
 
 	const glm::vec3 light_pos = {5.0f, 5.0f, 5.0f};
 
+	timer timer;
+
 	while (!main_wnd.should_close())
 	{
+		const float delta_time = timer.mark();
+		
+		// для физики использовать константный dt
+
+		main_camera.set_delta_time(delta_time);
+
 		main_wnd.poll_events();
-		game::instance().begin_update();
 
 		if (input.was_action_triggered(input_manager::input_action::QUIT))
 			break;
@@ -84,13 +91,9 @@ int main()
 		main_scene.render(main_camera.get_view_matrix(),
 						  main_camera.get_proj_matrix(),
 						  main_camera.get_pos(),
-						  light_pos);
+						  main_camera.get_pos());
 
-		main_wnd.late_update();
 		main_wnd.swap_buffers();
-
-		game::instance().update();
-		game::instance().end_update();
 	}
 	return 0;
 }

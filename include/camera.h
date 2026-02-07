@@ -19,7 +19,7 @@ public:
    void set_speed(const float new_speed) { _speed = new_speed; }
    void set_mouse_sensitivity(const float mouse_sensitivity) { _mouse_sensitivity = mouse_sensitivity; }
    void mouse_move(const float x, const float y, bool constrain_pitch = true);
-   void update();
+   void set_delta_time(const float dt) { _delta_time = dt; };
 
    const glm::mat4 &get_proj_matrix() const { return _proj_matrix; }
    const glm::mat4 &get_view_matrix();
@@ -33,7 +33,7 @@ private:
    float _yaw = -90.0f;
    float _pitch = 0.0f;
    float _zoom = 45.0f;
-   float _speed = 3.0f;
+   float _speed = 6.0f;
    float _mouse_sensitivity = 0.15f;
 
    bool _need_update_matrix = false;
@@ -54,4 +54,6 @@ private:
    bool _move_right = false;
    bool _move_forward = false;
    bool _move_backward = false;
+
+   float _delta_time = 0.0f;
 };
