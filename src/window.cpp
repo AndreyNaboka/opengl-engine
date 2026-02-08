@@ -1,5 +1,6 @@
 #include "window.h"
 #include "logger.h"
+#include "settings.h"
 
 static window *get_window_ptr(GLFWwindow *wnd)
 {
@@ -103,8 +104,8 @@ void window::poll_events()
 
 void window::set_fps(const int fps)
 {
-    char title[10];
-    snprintf(title, 10, "FPS: %i", fps);
+    char title[100];
+    snprintf(title, 100, "%s FPS: %i", WINDOW_TITLE, fps);
     glfwSetWindowTitle(_native_window, title);
 }
 

@@ -87,7 +87,7 @@ int main()
 		if (input.is_action_active(input_manager::input_action::MOVE_RIGHT))
 			main_camera.move_camera(camera::camera_direction::RIGHT);
 
-		if (input.is_action_active(input_manager::input_action::INTERACT))
+		if (input.was_action_triggered(input_manager::input_action::INTERACT))
 			main_wnd.hide_cursor();
 
 		const input_manager::mouse_state &cms = input.get_mouse_state();
