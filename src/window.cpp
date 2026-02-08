@@ -32,7 +32,6 @@ window::window(const std::string &title, const int w, const int h)
     glfwSwapInterval(1);
     glfwSetWindowUserPointer(_native_window, this);
     glfwSetFramebufferSizeCallback(_native_window, framebuffer_resize_callback);
-    glfwSetInputMode(_native_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         logger::error("Failed to initialize GLAD");
@@ -45,11 +44,19 @@ window::window(const std::string &title, const int w, const int h)
     glfwSetKeyCallback(_native_window, key_callback);
     glfwSetCursorPosCallback(_native_window, mouse_callback);
     glfwSetScrollCallback(_native_window, scroll_callback);
+    glfwSetMouseButtonCallback(_native_window, mouse_button_callback);
 }
 
 void window::framebuffer_resize_callback(GLFWwindow *wnd, int width, int height)
 {
     glViewport(0, 0, width, height);
+}
+
+void window::mouse_button_callback(GLFWwindow *wnd, int button, int action, int mods)
+{
+    if (auto *self = get_window_ptr(wnd))
+        if (self->_mouse_btn_cb)
+            self->_mouse_btn_cb(button, action, mods);
 }
 
 void window::mouse_callback(GLFWwindow *wnd, double xpos, double ypos)
@@ -99,4 +106,10 @@ void window::set_fps(const int fps)
     char title[10];
     snprintf(title, 10, "FPS: %i", fps);
     glfwSetWindowTitle(_native_window, title);
+}
+
+void window::hide_cursor()
+{
+    _cursors_hiden = !_cursors_hiden;
+    glfwSetInputMode(_native_window, GLFW_CURSOR, _cursors_hiden == false ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 }

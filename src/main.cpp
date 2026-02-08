@@ -28,7 +28,7 @@ int main()
 	input.bind_key(GLFW_KEY_A, input_manager::input_action::MOVE_LEFT);
 	input.bind_key(GLFW_KEY_D, input_manager::input_action::MOVE_RIGHT);
 	input.bind_key(GLFW_KEY_ESCAPE, input_manager::input_action::QUIT);
-	input.bind_key(GLFW_MOUSE_BUTTON_LEFT, input_manager::input_action::INTERACT);
+	input.bind_mouse_button(GLFW_MOUSE_BUTTON_LEFT, input_manager::input_action::INTERACT);
 
 	window main_wnd(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT);
 	main_wnd.set_key_callback([&input](int k, int s, int a, int m)
@@ -37,6 +37,8 @@ int main()
 								{ input.on_mouse_move(x, y); });
 	main_wnd.set_scroll_callback([&input](double xoffset, double yoffset)
 								 { input.on_mouse_scroll(xoffset, yoffset); });
+	main_wnd.set_mouse_button_callback([&input](int button, int action, int mods)
+									   { input.on_mouse_button(button, action, mods); });
 
 	scene main_scene;
 	camera main_camera({0.0f, 2.5f, 3.0f});
@@ -84,6 +86,9 @@ int main()
 
 		if (input.is_action_active(input_manager::input_action::MOVE_RIGHT))
 			main_camera.move_camera(camera::camera_direction::RIGHT);
+
+		if (input.is_action_active(input_manager::input_action::INTERACT))
+			main_wnd.hide_cursor();
 
 		const input_manager::mouse_state &cms = input.get_mouse_state();
 		if (cms.delta_x != 0.0 || cms.delta_y != 0.0)
