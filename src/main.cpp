@@ -12,7 +12,7 @@
 #include "window.h"
 #include "input_manager.h"
 #include "scene.h"
-#include "timer.h"
+#include "core/Timer.h"
 #include "fps_counter.h"
 #include "settings.h"
 
@@ -57,7 +57,7 @@ int main()
 
 	const glm::vec3 light_pos = {5.0f, 5.0f, 5.0f};
 
-	timer timer;
+	Timer timer;
 
 	fps_counter fps_counter;
 	auto last_log = std::chrono::high_resolution_clock::now();

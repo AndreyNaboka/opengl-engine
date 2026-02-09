@@ -1,7 +1,7 @@
 #pragma once
 #include <chrono>
 
-class timer
+class Timer
 {
 public:
     float mark()
