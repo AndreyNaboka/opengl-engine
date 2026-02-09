@@ -4,33 +4,49 @@ project(opengl-engine VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Указываем директории с исходниками и заголовками
-set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(HEADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-# Собираем все исходные файлы
-file(GLOB_RECURSE SOURCES 
-    "${SOURCE_DIR}/*.cpp"
-    "${SOURCE_DIR}/*.cxx"
-    "${SOURCE_DIR}/*.cc"
-    "${SOURCE_DIR}/*.c"
+set(SOURCE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/ext 
 )
 
-file(GLOB_RECURSE HEADERS 
-    "${HEADER_DIR}/*.h"
-    "${HEADER_DIR}/*.hpp"
-    "${HEADER_DIR}/*.hxx"
+set(HEADER_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/ext  
 )
 
-# Добавляем файлы в проект
+set(SOURCES)
+foreach(DIR IN LISTS SOURCE_DIRS)
+    file(GLOB_RECURSE DIR_SOURCES
+        "${DIR}/*.cpp"
+        "${DIR}/*.cxx"
+        "${DIR}/*.cc"
+        "${DIR}/*.c"
+    )
+    list(APPEND SOURCES ${DIR_SOURCES})
+endforeach()
+
+set(HEADERS)
+foreach(DIR IN LISTS HEADER_DIRS)
+    file(GLOB_RECURSE DIR_HEADERS
+        "${DIR}/*.h"
+        "${DIR}/*.hpp"
+        "${DIR}/*.hxx"
+    )
+    list(APPEND HEADERS ${DIR_HEADERS})
+endforeach()
+
 add_executable(opengl-engine ${SOURCES} ${HEADERS})
 
-target_include_directories(opengl-engine PUBLIC ${HEADER_DIR})
+target_include_directories(opengl-engine PUBLIC ${HEADER_DIRS})
 
-target_link_libraries(opengl-engine 
-  PUBLIC 
-  "-framework Metal -framework Foundation -framework Cocoa -framework IOKit -framework OpenGL"
-  ${CMAKE_CURRENT_SOURCE_DIR}/libs/glfw/lib-arm64/libglfw3.a
+target_link_libraries(opengl-engine
+    PUBLIC
+        "-framework Metal"
+        "-framework Foundation"
+        "-framework Cocoa"
+        "-framework IOKit"
+        "-framework OpenGL"
+        ${CMAKE_CURRENT_SOURCE_DIR}/libs/glfw/lib-arm64/libglfw3.a
 )
 
 target_compile_options(opengl-engine PRIVATE -Wno-deprecated-declarations)
