@@ -7,7 +7,6 @@
 
 namespace MathUtils
 {
-    inline int add(const int a, const int b) { return a + b; }
     // Интерполяция кватернионов с корректной обработкой противоположных направлений
     inline glm::quat slerpShortest(const glm::quat &q1, const glm::quat &q2, float t)
     {
