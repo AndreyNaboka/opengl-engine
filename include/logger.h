@@ -5,21 +5,21 @@
 #include <string>
 #include <iomanip>
 
-class logger
+class Logger
 {
 public:
-	enum level
+	enum Level
 	{
 		INFO,
 		WARNING,
 		ERROR
 	};
-	static void info(const std::string &message) { log(INFO, "INFO", message); }
-	static void warn(const std::string &message) { log(WARNING, "WARN", message); }
-	static void error(const std::string &message) { log(ERROR, "ERROR", message); }
+	static void Info(const std::string &message) { Log(INFO, "INFO", message); }
+	static void Warn(const std::string &message) { Log(WARNING, "WARN", message); }
+	static void Error(const std::string &message) { Log(ERROR, "ERROR", message); }
 
 private:
-	static void log(level level, const std::string &label, const std::string &msg)
+	static void Log(Level level, const std::string &label, const std::string &msg)
 	{
 		auto now = std::chrono::system_clock::now();
 		auto time_t = std::chrono::system_clock::to_time_t(now);

@@ -1,5 +1,5 @@
 #include "texture.h"
-#include "logger.h"
+#include "Logger.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -8,17 +8,17 @@ std::shared_ptr<texture> texture::create(const std::string &name, const std::str
 {
    if (name.empty())
    {
-      logger::error("Try to create texture with empty name");
+      Logger::Error("Try to create texture with empty name");
       return nullptr;
    }
 
    if (path.empty())
    {
-      logger::error("Try to create texture name: " + name + " with empty path to image");
+      Logger::Error("Try to create texture name: " + name + " with empty path to image");
       return nullptr;
    }
 
-   logger::info("Create texture " + name + ", from " + path);
+   Logger::Info("Create texture " + name + ", from " + path);
 
    return std::shared_ptr<texture>(new texture(name, path));
 }
@@ -29,7 +29,7 @@ void texture::load()
    stbi_uc *image_data = stbi_load(_path.c_str(), &width, &height, &channels, 0);
    if (!image_data)
    {
-      logger::error("Can't read image " + _name);
+      Logger::Error("Can't read image " + _name);
       return;
    }
 
@@ -55,7 +55,7 @@ void texture::bind()
 {
    if (!_inited)
    {
-      logger::error("try to bind not inited texture - " + _name);
+      Logger::Error("try to bind not inited texture - " + _name);
       return;
    }
    glActiveTexture(GL_TEXTURE0);

@@ -5,7 +5,7 @@
 
 #include <memory>
 
-#include "logger.h"
+#include "Logger.h"
 #include "shader.h"
 #include "texture.h"
 #include "Camera.h"

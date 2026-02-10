@@ -1,4 +1,4 @@
-#include "logger.h"
+#include "Logger.h"
 #include "shader.h"
 #include <fstream>
 #include <sstream>
@@ -26,7 +26,7 @@ static unsigned int compile_shader(unsigned int type, const std::string &source)
 	{
 		char log[512];
 		glGetShaderInfoLog(id, 512, nullptr, log);
-		logger::error("Shader compilation failed:\n" + std::string(log));
+		Logger::Error("Shader compilation failed:\n" + std::string(log));
 	}
 	return id;
 }

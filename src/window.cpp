@@ -1,5 +1,5 @@
 #include "window.h"
-#include "logger.h"
+#include "Logger.h"
 #include "settings.h"
 
 static window *get_window_ptr(GLFWwindow *wnd)
@@ -11,7 +11,8 @@ window::window(const std::string &title, const int w, const int h)
 {
     if (!glfwInit())
     {
-        logger::error("Failed to initialize GLFW");
+        Logger::Error("Failed to initialize GLFW");
+        glfwTerminate();
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -25,7 +26,7 @@ window::window(const std::string &title, const int w, const int h)
     _native_window = glfwCreateWindow(w, h, title.c_str(), nullptr, nullptr);
     if (!_native_window)
     {
-        logger::error("Failed to create GLFW window");
+        Logger::Error("Failed to create GLFW window");
         glfwTerminate();
     }
 
@@ -35,7 +36,10 @@ window::window(const std::string &title, const int w, const int h)
     glfwSetFramebufferSizeCallback(_native_window, framebuffer_resize_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-        logger::error("Failed to initialize GLAD");
+    {
+        Logger::Error("Failed to initialize GLAD");
+        glfwTerminate();
+    }
 
     int framebuffer_width = w;
     int frame_buffer_height = h;
