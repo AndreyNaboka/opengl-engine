@@ -1,13 +1,13 @@
-#include "window.h"
+#include "Window.h"
 #include "Logger.h"
 #include "settings.h"
 
-static window *get_window_ptr(GLFWwindow *wnd)
+static Window *GetWindowPtr(GLFWwindow *wnd)
 {
-    return static_cast<window *>(glfwGetWindowUserPointer(wnd));
+    return static_cast<Window *>(glfwGetWindowUserPointer(wnd));
 }
 
-window::window(const std::string &title, const int w, const int h)
+Window::Window(const std::string &title, const int w, const int h)
 {
     if (!glfwInit())
     {
@@ -23,17 +23,17 @@ window::window(const std::string &title, const int w, const int h)
 #endif
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    _native_window = glfwCreateWindow(w, h, title.c_str(), nullptr, nullptr);
-    if (!_native_window)
+    _nativeWindow = glfwCreateWindow(w, h, title.c_str(), nullptr, nullptr);
+    if (!_nativeWindow)
     {
         Logger::Error("Failed to create GLFW window");
         glfwTerminate();
     }
 
-    glfwMakeContextCurrent(_native_window);
+    glfwMakeContextCurrent(_nativeWindow);
     glfwSwapInterval(1);
-    glfwSetWindowUserPointer(_native_window, this);
-    glfwSetFramebufferSizeCallback(_native_window, framebuffer_resize_callback);
+    glfwSetWindowUserPointer(_nativeWindow, this);
+    glfwSetFramebufferSizeCallback(_nativeWindow, FramebufferResizeCallback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -41,80 +41,80 @@ window::window(const std::string &title, const int w, const int h)
         glfwTerminate();
     }
 
-    int framebuffer_width = w;
-    int frame_buffer_height = h;
-    glfwGetFramebufferSize(_native_window, &framebuffer_width, &frame_buffer_height);
-    glViewport(0, 0, framebuffer_width, frame_buffer_height);
+    int framebufferWidth = w;
+    int framebufferHeight = h;
+    glfwGetFramebufferSize(_nativeWindow, &framebufferWidth, &framebufferHeight);
+    glViewport(0, 0, framebufferWidth, framebufferHeight);
 
-    glfwSetKeyCallback(_native_window, key_callback);
-    glfwSetCursorPosCallback(_native_window, mouse_callback);
-    glfwSetScrollCallback(_native_window, scroll_callback);
-    glfwSetMouseButtonCallback(_native_window, mouse_button_callback);
+    glfwSetKeyCallback(_nativeWindow, KeyCallback);
+    glfwSetCursorPosCallback(_nativeWindow, MouseCallback);
+    glfwSetScrollCallback(_nativeWindow, ScrollCallback);
+    glfwSetMouseButtonCallback(_nativeWindow, MouseButtonCallback);
 }
 
-void window::framebuffer_resize_callback(GLFWwindow *wnd, int width, int height)
+void Window::FramebufferResizeCallback(GLFWwindow *wnd, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-void window::mouse_button_callback(GLFWwindow *wnd, int button, int action, int mods)
+void Window::MouseButtonCallback(GLFWwindow *wnd, int button, int action, int mods)
 {
-    if (auto *self = get_window_ptr(wnd))
-        if (self->_mouse_btn_cb)
-            self->_mouse_btn_cb(button, action, mods);
+    if (auto *self = GetWindowPtr(wnd))
+        if (self->_mouseBtnCb)
+            self->_mouseBtnCb(button, action, mods);
 }
 
-void window::mouse_callback(GLFWwindow *wnd, double xpos, double ypos)
+void Window::MouseCallback(GLFWwindow *wnd, double xpos, double ypos)
 {
-    if (auto *self = get_window_ptr(wnd))
-        if (self->_mouse_cb)
-            self->_mouse_cb(xpos, ypos);
+    if (auto *self = GetWindowPtr(wnd))
+        if (self->_mouseCb)
+            self->_mouseCb(xpos, ypos);
 }
 
-void window::scroll_callback(GLFWwindow *wnd, double xoffset, double yoffset)
+void Window::ScrollCallback(GLFWwindow *wnd, double xoffset, double yoffset)
 {
-    if (auto *self = get_window_ptr(wnd))
-        if (self->_scroll_cb)
-            self->_scroll_cb(xoffset, yoffset);
+    if (auto *self = GetWindowPtr(wnd))
+        if (self->_scrollCb)
+            self->_scrollCb(xoffset, yoffset);
 }
 
-void window::key_callback(GLFWwindow *wnd, int key, int scancode, int action, int mods)
+void Window::KeyCallback(GLFWwindow *wnd, int key, int scancode, int action, int mods)
 {
-    if (auto *self = get_window_ptr(wnd))
-        if (self->_key_cb)
-            self->_key_cb(key, scancode, action, mods);
+    if (auto *self = GetWindowPtr(wnd))
+        if (self->_keyCb)
+            self->_keyCb(key, scancode, action, mods);
 }
 
-window::~window()
+Window::~Window()
 {
-    glfwDestroyWindow(_native_window);
+    glfwDestroyWindow(_nativeWindow);
     glfwTerminate();
 }
 
-void window::swap_buffers()
+void Window::SwapBuffers()
 {
-    glfwSwapBuffers(_native_window);
+    glfwSwapBuffers(_nativeWindow);
 }
 
-bool window::should_close() const
+bool Window::ShouldClose() const
 {
-    return glfwWindowShouldClose(_native_window);
+    return glfwWindowShouldClose(_nativeWindow);
 }
 
-void window::poll_events()
+void Window::PollEvents()
 {
     glfwPollEvents();
 }
 
-void window::set_fps(const int fps)
+void Window::SetFPS(const int fps)
 {
     char title[100];
     snprintf(title, 100, "%s FPS: %i", WINDOW_TITLE, fps);
-    glfwSetWindowTitle(_native_window, title);
+    glfwSetWindowTitle(_nativeWindow, title);
 }
 
-void window::hide_cursor()
+void Window::HideCursor()
 {
     _showCursor = !_showCursor;
-    glfwSetInputMode(_native_window, GLFW_CURSOR, _showCursor == false ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+    glfwSetInputMode(_nativeWindow, GLFW_CURSOR, _showCursor == false ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 }

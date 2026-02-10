@@ -9,7 +9,7 @@
 #include "shader.h"
 #include "texture.h"
 #include "Camera.h"
-#include "window.h"
+#include "Window.h"
 #include "InputManager.h"
 #include "scene.h"
 #include "Core/Timer.h"
@@ -30,14 +30,14 @@ int main()
 	input.BindKey(GLFW_KEY_ESCAPE, InputManager::InputAction::QUIT);
 	input.BindMouseButton(GLFW_MOUSE_BUTTON_LEFT, InputManager::InputAction::INTERACT);
 
-	window main_wnd{WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT};
-	main_wnd.set_key_callback([&input](int k, int s, int a, int m)
+	Window mainWnd{WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT};
+	mainWnd.SetKeyCallback([&input](int k, int s, int a, int m)
 							  { input.OnKeyEvent(k, a, m); });
-	main_wnd.set_mouse_callback([&input](double x, double y)
+	mainWnd.SetMouseCallback([&input](double x, double y)
 								{ input.OnMouseMove(x, y); });
-	main_wnd.set_scroll_callback([&input](double xoffset, double yoffset)
+	mainWnd.SetScrollCallback([&input](double xoffset, double yoffset)
 								 { input.OnMouseScroll(xoffset, yoffset); });
-	main_wnd.set_mouse_button_callback([&input](int button, int action, int mods)
+	mainWnd.SetMouseButtonCallback([&input](int button, int action, int mods)
 									   { input.OnMouseButton(button, action, mods); });
 
 	scene main_scene;
@@ -60,9 +60,9 @@ int main()
 	Timer timer;
 
 	FPSCounter fpsCounter;
-	auto last_log = std::chrono::high_resolution_clock::now();
+	auto lastLogTime = std::chrono::high_resolution_clock::now();
 
-	while (!main_wnd.should_close())
+	while (!mainWnd.ShouldClose())
 	{
 		const float delta_time = timer.mark();
 
@@ -70,7 +70,7 @@ int main()
 
 		mainCamera.SetDeltaTime(delta_time);
 
-		main_wnd.poll_events();
+		mainWnd.PollEvents();
 
 		if (input.WasActionTriggered(InputManager::InputAction::QUIT))
 			break;
@@ -88,7 +88,7 @@ int main()
 			mainCamera.MoveCamera(Camera::CameraDirection::RIGHT);
 
 		if (input.WasActionTriggered(InputManager::InputAction::INTERACT))
-			main_wnd.hide_cursor();
+			mainWnd.HideCursor();
 
 		const InputManager::MouseState &currentMouseState = input.GetMouseState();
 		if (currentMouseState.DeltaX != 0.0 || currentMouseState.DeltaY != 0.0)
@@ -102,14 +102,14 @@ int main()
 						  mainCamera.GetPos(),
 						  mainCamera.GetPos());
 
-		main_wnd.swap_buffers();
+		mainWnd.SwapBuffers();
 
 		fpsCounter.Tick();
 		auto now = std::chrono::high_resolution_clock::now();
-		if (std::chrono::duration_cast<std::chrono::seconds>(now - last_log).count() >= 1)
+		if (std::chrono::duration_cast<std::chrono::seconds>(now - lastLogTime).count() >= 1)
 		{
-			main_wnd.set_fps(static_cast<int>(fpsCounter.GetFPS()));
-			last_log = now;
+			mainWnd.SetFPS(static_cast<int>(fpsCounter.GetFPS()));
+			lastLogTime = now;
 		}
 	}
 	return 0;
