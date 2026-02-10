@@ -48,7 +48,7 @@ private:
     int _width = 0;
     int _height = 0;
 
-    bool _cursors_hiden = false;
+    bool _showCursor = true;
     key_callback_proxy _key_cb;
     mouse_move_callback_proxy _mouse_cb;
     scroll_callback_proxy _scroll_cb;

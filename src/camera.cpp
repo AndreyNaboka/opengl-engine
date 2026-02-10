@@ -1,72 +1,72 @@
-#include "camera.h"
+#include "Camera.h"
 #include "settings.h"
 #include "glad/glad.h"
 #include <glfw/glfw3.h>
 
-camera::camera(const glm::vec3 &pos)
+Camera::Camera(const glm::vec3 &pos)
 {
    _pos = pos;
    _up = glm::vec3(0.0f, 1.0f, 0.0f);
    _front = glm::vec3(0.0f, 0.0f, -1.0f);
-   _proj_matrix = glm::perspective(45.0f, WINDOW_ASPECT_RATIO, 0.1f, 100.0f);
-   _world_up = _up;
-   _view_matrix = glm::mat4(1.0f);
-   update_camera_vectors();
+   _projMatrix = glm::perspective(45.0f, WINDOW_ASPECT_RATIO, 0.1f, 100.0f);
+   _worldUp = _up;
+   _viewMatrix = glm::mat4(1.0f);
+   UpdateCameraVectors();
 }
 
-void camera::move_camera(const camera::camera_direction dir)
+void Camera::MoveCamera(const Camera::CameraDirection dir)
 {
-   const float velocity = _delta_time * _speed;
+   const float velocity = _deltaTime * _speed;
 
    switch (dir)
    {
-   case camera::camera_direction::FORWARD:
+   case Camera::CameraDirection::FORWARD:
       _pos += _front * velocity;
       break;
-   case camera::camera_direction::BACKWARD:
+   case Camera::CameraDirection::BACKWARD:
       _pos -= _front * velocity;
       break;
-   case camera::camera_direction::LEFT:
+   case Camera::CameraDirection::LEFT:
       _pos -= _right * velocity;
       break;
-   case camera::camera_direction::RIGHT:
+   case Camera::CameraDirection::RIGHT:
       _pos += _right * velocity;
       break;
    default:
       break;
    }
 
-   update_camera_vectors();
+   UpdateCameraVectors();
 }
 
-void camera::mouse_move(const float x, const float y, bool constrain_pitch)
+void Camera::MouseMove(const float x, const float y, bool constrainPitch)
 {
-   _yaw += x * _mouse_sensitivity;
-   _pitch += y * _mouse_sensitivity;
+   _yaw += x * _mouseSensitivity;
+   _pitch += y * _mouseSensitivity;
 
-   if (constrain_pitch)
+   if (constrainPitch)
       _pitch = std::clamp(_pitch, -89.0f, 89.0f);
 
-   update_camera_vectors();
+   UpdateCameraVectors();
 }
 
-const glm::mat4 &camera::get_view_matrix()
+const glm::mat4 &Camera::GetViewMatrix()
 {
-   if (_need_update_matrix)
+   if (_needUpdateMatrix)
    {
-      _view_matrix = glm::lookAt(_pos, _pos + _front, _up);
-      _need_update_matrix = false;
+      _viewMatrix = glm::lookAt(_pos, _pos + _front, _up);
+      _needUpdateMatrix = false;
    }
-   return _view_matrix;
+   return _viewMatrix;
 }
 
-void camera::update_camera_vectors()
+void Camera::UpdateCameraVectors()
 {
    _front.x = cos(glm::radians(_yaw)) * cos(glm::radians(_pitch));
    _front.y = sin(glm::radians(_pitch));
    _front.z = sin(glm::radians(_yaw)) * cos(glm::radians(_pitch));
    _front = glm::normalize(_front);
-   _right = glm::normalize(glm::cross(_front, _world_up));
+   _right = glm::normalize(glm::cross(_front, _worldUp));
    _up = glm::normalize(glm::cross(_right, _front));
-   _need_update_matrix = true;
+   _needUpdateMatrix = true;
 }

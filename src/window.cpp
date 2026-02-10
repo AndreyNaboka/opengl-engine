@@ -111,6 +111,6 @@ void window::set_fps(const int fps)
 
 void window::hide_cursor()
 {
-    _cursors_hiden = !_cursors_hiden;
-    glfwSetInputMode(_native_window, GLFW_CURSOR, _cursors_hiden == false ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+    _showCursor = !_showCursor;
+    glfwSetInputMode(_native_window, GLFW_CURSOR, _showCursor == false ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 }

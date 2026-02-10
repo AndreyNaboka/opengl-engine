@@ -3,10 +3,10 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-class camera
+class Camera
 {
 public:
-   enum class camera_direction
+   enum class CameraDirection
    {
       LEFT,
       RIGHT,
@@ -15,45 +15,45 @@ public:
    };
 
 public:
-   camera(const glm::vec3 &pos);
-   void set_speed(const float new_speed) { _speed = new_speed; }
-   void set_mouse_sensitivity(const float mouse_sensitivity) { _mouse_sensitivity = mouse_sensitivity; }
-   void mouse_move(const float x, const float y, bool constrain_pitch = true);
-   void set_delta_time(const float dt) { _delta_time = dt; };
+   Camera(const glm::vec3 &pos);
+   void SetSpeed(const float newSpeed) { _speed = newSpeed; }
+   void SetMouseSensitivity(const float mouseSensitivity) { _mouseSensitivity = mouseSensitivity; }
+   void MouseMove(const float x, const float y, bool constrainPitch = true);
+   void SetDeltaTime(const float dt) { _deltaTime = dt; };
 
-   const glm::mat4 &get_proj_matrix() const { return _proj_matrix; }
-   const glm::mat4 &get_view_matrix();
-   const glm::vec3 &get_pos() const { return _pos; }
-   void move_camera(const camera::camera_direction dir);
+   const glm::mat4 &GetProjMatrix() const { return _projMatrix; }
+   const glm::mat4 &GetViewMatrix();
+   const glm::vec3 &GetPos() const { return _pos; }
+   void MoveCamera(const Camera::CameraDirection dir);
 
 private:
-   void update_camera_vectors();
+   void UpdateCameraVectors();
 
 private:
    float _yaw = -90.0f;
    float _pitch = 0.0f;
    float _zoom = 45.0f;
    float _speed = 6.0f;
-   float _mouse_sensitivity = 0.15f;
+   float _mouseSensitivity = 0.15f;
 
-   bool _need_update_matrix = false;
+   bool _needUpdateMatrix = false;
 
-   glm::mat4 _view_matrix;
-   glm::mat4 _proj_matrix;
+   glm::mat4 _viewMatrix;
+   glm::mat4 _projMatrix;
    glm::vec3 _pos;
    glm::vec3 _front;
    glm::vec3 _up;
-   glm::vec3 _world_up;
+   glm::vec3 _worldUp;
    glm::vec3 _right;
 
-   bool _first_mouse_move = true;
-   float _last_x_mouse = 0.0f;
-   float _last_y_mouse = 0.0f;
+   bool _firstMouseMove = true;
+   float _lastXMouse = 0.0f;
+   float _lastYMouse = 0.0f;
 
-   bool _move_left = false;
-   bool _move_right = false;
-   bool _move_forward = false;
-   bool _move_backward = false;
+   bool _moveLeft = false;
+   bool _moveRight = false;
+   bool _moveForward = false;
+   bool _moveBackward = false;
 
-   float _delta_time = 0.0f;
+   float _deltaTime = 0.0f;
 };
