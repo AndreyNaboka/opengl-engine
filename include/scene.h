@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-#include "shader.h"
+#include "Shader.h"
 #include "texture.h"
 
 struct Transform
@@ -29,7 +29,7 @@ struct Transform
 
 struct MeshRenderer
 {
-    std::shared_ptr<shader> Shader;
+    std::shared_ptr<Shader> Shader;
     std::shared_ptr<texture> Texture;
     unsigned int VAO = 0;
     unsigned int IndexCount = 0;

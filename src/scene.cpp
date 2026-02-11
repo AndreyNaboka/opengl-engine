@@ -98,20 +98,20 @@ void Scene::Render(const glm::mat4 &view,
 {
     for (auto &e : _entities)
     {
-        e.MeshRenderer.Shader->use();
+        e.MeshRenderer.Shader->Use();
 
         glm::mat4 model = e.Transform.GetModelMatrix();
-        e.MeshRenderer.Shader->set_mat4("model", model);
-        e.MeshRenderer.Shader->set_mat4("view", view);
-        e.MeshRenderer.Shader->set_mat4("projection", projection);
+        e.MeshRenderer.Shader->SetMat4("model", model);
+        e.MeshRenderer.Shader->SetMat4("view", view);
+        e.MeshRenderer.Shader->SetMat4("projection", projection);
 
-        e.MeshRenderer.Shader->set_vec3("veiwPos", cameraPos);
-        e.MeshRenderer.Shader->set_vec3("lightPos", lightPos);
-        e.MeshRenderer.Shader->set_vec3("lightColor", glm::vec3(1.0f));
-        e.MeshRenderer.Shader->set_vec3("objectColor", glm::vec3(1.0f));
+        e.MeshRenderer.Shader->SetVec3("veiwPos", cameraPos);
+        e.MeshRenderer.Shader->SetVec3("lightPos", lightPos);
+        e.MeshRenderer.Shader->SetVec3("lightColor", glm::vec3(1.0f));
+        e.MeshRenderer.Shader->SetVec3("objectColor", glm::vec3(1.0f));
 
         e.MeshRenderer.Texture->bind();
-        e.MeshRenderer.Shader->set_int("material.diffuse", 0);
+        e.MeshRenderer.Shader->SetInt("material.diffuse", 0);
 
         glBindVertexArray(e.MeshRenderer.VAO);
         glDrawElements(GL_TRIANGLES, e.MeshRenderer.IndexCount, GL_UNSIGNED_INT, 0);
