@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "Logger.h"
-#include "texture.h"
+#include "Texture.h"
 #include "Camera.h"
 #include "Window.h"
 #include "InputManager.h"
@@ -43,13 +43,13 @@ int main()
 	Camera mainCamera({0.0f, 2.5f, 3.0f});
 
 	std::shared_ptr<Shader> shaderPhong = std::make_shared<Shader>("/Users/andreynaboka/code/opengl-engine/assets/shaders/phong.vs", "/Users/andreynaboka/code/opengl-engine/assets/shaders/phong.fs");
-	std::shared_ptr<texture> ground_texture = texture::create("ground_texture", "/Users/andreynaboka/code/opengl-engine/assets/img/Ground_01.png");
+	std::shared_ptr<Texture> groundTexture = Texture::Create("ground_texture", "/Users/andreynaboka/code/opengl-engine/assets/img/Ground_01.png");
 
-	ground_texture->load();
+	groundTexture->Load();
 
 	MeshRenderer groundMesh = mainScene.CreateGroundMesh();
 	groundMesh.Shader = shaderPhong;
-	groundMesh.Texture = ground_texture;
+	groundMesh.Texture = groundTexture;
 
 	Transform groundTransform;
 	mainScene.AddEntity(groundTransform, groundMesh);

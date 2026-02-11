@@ -1,10 +1,10 @@
-#include "texture.h"
+#include "Texture.h"
 #include "Logger.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-std::shared_ptr<texture> texture::create(const std::string &name, const std::string &path)
+std::shared_ptr<Texture> Texture::Create(const std::string &name, const std::string &path)
 {
    if (name.empty())
    {
@@ -20,14 +20,14 @@ std::shared_ptr<texture> texture::create(const std::string &name, const std::str
 
    Logger::Info("Create texture " + name + ", from " + path);
 
-   return std::shared_ptr<texture>(new texture(name, path));
+   return std::shared_ptr<Texture>(new Texture(name, path));
 }
 
-void texture::load()
+void Texture::Load()
 {
    int width, height, channels;
-   stbi_uc *image_data = stbi_load(_path.c_str(), &width, &height, &channels, 0);
-   if (!image_data)
+   stbi_uc *imageData = stbi_load(_path.c_str(), &width, &height, &channels, 0);
+   if (!imageData)
    {
       Logger::Error("Can't read image " + _name);
       return;
@@ -41,17 +41,17 @@ void texture::load()
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
    if (channels == 3)
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
    else if (channels == 4)
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
    glGenerateMipmap(GL_TEXTURE_2D);
    glBindTexture(GL_TEXTURE_2D, 0);
 
-   stbi_image_free(image_data);
+   stbi_image_free(imageData);
    _inited = true;
 }
 
-void texture::bind()
+void Texture::Bind()
 {
    if (!_inited)
    {
@@ -62,7 +62,7 @@ void texture::bind()
    glBindTexture(GL_TEXTURE_2D, _id);
 }
 
-texture::texture(const std::string &name, const std::string &path)
+Texture::Texture(const std::string &name, const std::string &path)
 {
    _name = name;
    _path = path;

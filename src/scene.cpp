@@ -110,7 +110,7 @@ void Scene::Render(const glm::mat4 &view,
         e.MeshRenderer.Shader->SetVec3("lightColor", glm::vec3(1.0f));
         e.MeshRenderer.Shader->SetVec3("objectColor", glm::vec3(1.0f));
 
-        e.MeshRenderer.Texture->bind();
+        e.MeshRenderer.Texture->Bind();
         e.MeshRenderer.Shader->SetInt("material.diffuse", 0);
 
         glBindVertexArray(e.MeshRenderer.VAO);

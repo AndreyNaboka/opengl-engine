@@ -5,15 +5,15 @@
 
 #include "glad/glad.h"
 
-class texture
+class Texture
 {
 public:
-   static std::shared_ptr<texture> create(const std::string &name, const std::string &path);
-   void load();
-   void bind();
+   static std::shared_ptr<Texture> Create(const std::string &name, const std::string &path);
+   void Load();
+   void Bind();
 
 private:
-   texture(const std::string &name, const std::string &path);
+   Texture(const std::string &name, const std::string &path);
 
 private:
    bool _inited = false;
