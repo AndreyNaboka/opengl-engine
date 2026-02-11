@@ -1,13 +1,13 @@
 #include <glad/glad.h>
 
-#include "scene.h"
+#include "Scene.h"
 
-static void setup_mesh(float *vertices,
-                       unsigned int *indices,
-                       unsigned int vcount,
-                       unsigned int icount,
-                       unsigned int &vao,
-                       unsigned int &index_count)
+static void SetupMesh(float *vertices,
+                      unsigned int *indices,
+                      unsigned int vcount,
+                      unsigned int icount,
+                      unsigned int &vao,
+                      unsigned int &indexCount)
 {
     unsigned int VBO, EBO;
     glGenVertexArrays(1, &vao);
@@ -33,10 +33,10 @@ static void setup_mesh(float *vertices,
     glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
-    index_count = icount;
+    indexCount = icount;
 }
 
-mesh_renderer scene::create_ground_mesh()
+MeshRenderer Scene::CreateGroundMesh()
 {
     float repeat = 50.0f; // подберите значение: 10, 20, 50...
 
@@ -75,46 +75,46 @@ mesh_renderer scene::create_ground_mesh()
         1.0f * repeat,
     };
     unsigned int indices[] = {0, 1, 2, 2, 3, 0};
-    mesh_renderer mr;
-    setup_mesh(vertices, indices, 32, 6, mr.vao, mr.index_count);
+    MeshRenderer mr;
+    SetupMesh(vertices, indices, 32, 6, mr.VAO, mr.IndexCount);
     return mr;
 }
 
-void scene::add_entity(const transform &tr, const mesh_renderer &mr)
+void Scene::AddEntity(const Transform &tr, const MeshRenderer &mr)
 {
     _entities.push_back({tr, mr});
 }
 
-void scene::pre_render()
+void Scene::PreRender()
 {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void scene::render(const glm::mat4 &view,
+void Scene::Render(const glm::mat4 &view,
                    const glm::mat4 &projection,
-                   const glm::vec3 &camera_pos,
-                   const glm::vec3 &light_pos)
+                   const glm::vec3 &cameraPos,
+                   const glm::vec3 &lightPos)
 {
     for (auto &e : _entities)
     {
-        e.mr.shader->use();
+        e.MeshRenderer.Shader->use();
 
-        glm::mat4 model = e.t.get_model_matrix();
-        e.mr.shader->set_mat4("model", model);
-        e.mr.shader->set_mat4("view", view);
-        e.mr.shader->set_mat4("projection", projection);
+        glm::mat4 model = e.Transform.GetModelMatrix();
+        e.MeshRenderer.Shader->set_mat4("model", model);
+        e.MeshRenderer.Shader->set_mat4("view", view);
+        e.MeshRenderer.Shader->set_mat4("projection", projection);
 
-        e.mr.shader->set_vec3("veiwPos", camera_pos);
-        e.mr.shader->set_vec3("lightPos", light_pos);
-        e.mr.shader->set_vec3("lightColor", glm::vec3(1.0f));
-        e.mr.shader->set_vec3("objectColor", glm::vec3(1.0f));
+        e.MeshRenderer.Shader->set_vec3("veiwPos", cameraPos);
+        e.MeshRenderer.Shader->set_vec3("lightPos", lightPos);
+        e.MeshRenderer.Shader->set_vec3("lightColor", glm::vec3(1.0f));
+        e.MeshRenderer.Shader->set_vec3("objectColor", glm::vec3(1.0f));
 
-        e.mr.texture->bind();
-        e.mr.shader->set_int("material.diffuse", 0);
+        e.MeshRenderer.Texture->bind();
+        e.MeshRenderer.Shader->set_int("material.diffuse", 0);
 
-        glBindVertexArray(e.mr.vao);
-        glDrawElements(GL_TRIANGLES, e.mr.index_count, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(e.MeshRenderer.VAO);
+        glDrawElements(GL_TRIANGLES, e.MeshRenderer.IndexCount, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
     }
 }

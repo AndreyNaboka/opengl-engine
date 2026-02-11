@@ -9,48 +9,48 @@
 #include "shader.h"
 #include "texture.h"
 
-struct transform
+struct Transform
 {
-    glm::vec3 position = {0.0f, 0.0f, 0.0f};
-    glm::vec3 rotation = {0.0f, 0.0f, 0.0f};
-    glm::vec3 scale = {1.0f, 1.0f, 1.0f};
+    glm::vec3 Position = {0.0f, 0.0f, 0.0f};
+    glm::vec3 Rotation = {0.0f, 0.0f, 0.0f};
+    glm::vec3 Scale = {1.0f, 1.0f, 1.0f};
 
-    glm::mat4 get_model_matrix() const
+    glm::mat4 GetModelMatrix() const
     {
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, position);
-        model = glm::rotate(model, glm::radians(rotation.x), {1, 0, 0});
-        model = glm::rotate(model, glm::radians(rotation.y), {0, 1, 0});
-        model = glm::rotate(model, glm::radians(rotation.z), {0, 0, 1});
-        model = glm::scale(model, scale);
+        model = glm::translate(model, Position);
+        model = glm::rotate(model, glm::radians(Rotation.x), {1, 0, 0});
+        model = glm::rotate(model, glm::radians(Rotation.y), {0, 1, 0});
+        model = glm::rotate(model, glm::radians(Rotation.z), {0, 0, 1});
+        model = glm::scale(model, Scale);
         return model;
     }
 };
 
-struct mesh_renderer
+struct MeshRenderer
 {
-    std::shared_ptr<shader> shader;
-    std::shared_ptr<texture> texture;
-    unsigned int vao = 0;
-    unsigned int index_count = 0;
+    std::shared_ptr<shader> Shader;
+    std::shared_ptr<texture> Texture;
+    unsigned int VAO = 0;
+    unsigned int IndexCount = 0;
 };
 
-class scene
+class Scene
 {
 public:
-    scene() { glEnable(GL_DEPTH_TEST); }
-    void add_entity(const transform &t, const mesh_renderer &mr);
-    void render(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &camera_pos, const glm::vec3 &light_pos);
-    void pre_render();
+    Scene() { glEnable(GL_DEPTH_TEST); }
+    void AddEntity(const Transform &t, const MeshRenderer &mr);
+    void Render(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &cameraPos, const glm::vec3 &lightPos);
+    void PreRender();
 
-    mesh_renderer create_ground_mesh();
+    MeshRenderer CreateGroundMesh();
 
 private:
-    struct entity
+    struct Entity
     {
-        transform t;
-        mesh_renderer mr;
+        Transform Transform;
+        MeshRenderer MeshRenderer;
     };
-    std::vector<entity> _entities;
+    std::vector<Entity> _entities;
     std::string _name;
 };

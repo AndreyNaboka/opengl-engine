@@ -11,7 +11,7 @@
 #include "Camera.h"
 #include "Window.h"
 #include "InputManager.h"
-#include "scene.h"
+#include "Scene.h"
 #include "Core/Timer.h"
 #include "Core/FPSCounter.h"
 #include "settings.h"
@@ -32,15 +32,15 @@ int main()
 
 	Window mainWnd{WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT};
 	mainWnd.SetKeyCallback([&input](int k, int s, int a, int m)
-							  { input.OnKeyEvent(k, a, m); });
+						   { input.OnKeyEvent(k, a, m); });
 	mainWnd.SetMouseCallback([&input](double x, double y)
-								{ input.OnMouseMove(x, y); });
+							 { input.OnMouseMove(x, y); });
 	mainWnd.SetScrollCallback([&input](double xoffset, double yoffset)
-								 { input.OnMouseScroll(xoffset, yoffset); });
+							  { input.OnMouseScroll(xoffset, yoffset); });
 	mainWnd.SetMouseButtonCallback([&input](int button, int action, int mods)
-									   { input.OnMouseButton(button, action, mods); });
+								   { input.OnMouseButton(button, action, mods); });
 
-	scene main_scene;
+	Scene mainScene;
 	Camera mainCamera({0.0f, 2.5f, 3.0f});
 
 	std::shared_ptr<shader> shader_phong = std::make_shared<shader>("/Users/andreynaboka/code/opengl-engine/assets/shaders/phong.vs", "/Users/andreynaboka/code/opengl-engine/assets/shaders/phong.fs");
@@ -48,14 +48,14 @@ int main()
 
 	ground_texture->load();
 
-	mesh_renderer ground_mesh = main_scene.create_ground_mesh();
-	ground_mesh.shader = shader_phong;
-	ground_mesh.texture = ground_texture;
+	MeshRenderer groundMesh = mainScene.CreateGroundMesh();
+	groundMesh.Shader = shader_phong;
+	groundMesh.Texture = ground_texture;
 
-	transform ground_transform;
-	main_scene.add_entity(ground_transform, ground_mesh);
+	Transform groundTransform;
+	mainScene.AddEntity(groundTransform, groundMesh);
 
-	const glm::vec3 light_pos = {5.0f, 5.0f, 5.0f};
+	const glm::vec3 lightPos = {5.0f, 5.0f, 5.0f};
 
 	Timer timer;
 
@@ -96,11 +96,11 @@ int main()
 
 		input.Update();
 
-		main_scene.pre_render();
-		main_scene.render(mainCamera.GetViewMatrix(),
-						  mainCamera.GetProjMatrix(),
-						  mainCamera.GetPos(),
-						  mainCamera.GetPos());
+		mainScene.PreRender();
+		mainScene.Render(mainCamera.GetViewMatrix(),
+						 mainCamera.GetProjMatrix(),
+						 mainCamera.GetPos(),
+						 lightPos);
 
 		mainWnd.SwapBuffers();
 
