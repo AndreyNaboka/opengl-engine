@@ -1,6 +1,6 @@
 #include "Window.h"
 #include "Logger.h"
-#include "settings.h"
+#include "Settings.h"
 
 static Window *GetWindowPtr(GLFWwindow *wnd)
 {

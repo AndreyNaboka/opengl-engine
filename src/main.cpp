@@ -14,7 +14,7 @@
 #include "Scene.h"
 #include "Core/Timer.h"
 #include "Core/FPSCounter.h"
-#include "settings.h"
+#include "Settings.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
