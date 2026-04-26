@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/gan-ogl-engine.dir/link.d "CMakeFiles/gan-ogl-engine.dir/src/Window.cpp.o" "CMakeFiles/gan-ogl-engine.dir/src/main.cpp.o" -o bin/gan-ogl-engine  libglad.a /usr/lib/x86_64-linux-gnu/libglfw.so.3.4 -lGL -ldl -lpthread

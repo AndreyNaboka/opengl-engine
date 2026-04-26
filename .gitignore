@@ -1,0 +1,29 @@
+# Папки сборки
+build/
+cmake-build-debug/
+cmake-build-release/
+bin/
+obj/
+
+# Бинарные файлы
+*.exe
+*.dll
+*.so
+*.a
+*.lib
+*.o
+
+# Файлы компиляторов
+*.orig
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
