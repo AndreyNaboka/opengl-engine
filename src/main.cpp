@@ -4,7 +4,7 @@
 
 int main() {
   std::unique_ptr<Window> wnd =
-      std::make_unique<Window>(600, 400, std::string("Title"));
+      std::make_unique<Window>(600, 400, std::string("World"));
 
   wnd->Run();
 
