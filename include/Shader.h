@@ -17,7 +17,6 @@ public:
     return Shader(v, f);
   }
 
-
   const unsigned int GetID() const { return _ID; }
   void Use() { glUseProgram(_ID); }
   void setMat4(const std::string &name, const glm::mat4 &mat) {
