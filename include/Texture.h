@@ -5,7 +5,7 @@ class Texture {
 public:
   Texture(const std::string &pathToTexture);
   void Bind(const unsigned int slot = 0);
-	unsigned int GetID() const { return _ID; }
+  unsigned int GetID() const { return _ID; }
 
 private:
   int _channels = 0;
