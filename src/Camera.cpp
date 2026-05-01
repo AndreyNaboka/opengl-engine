@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include <glm/ext/matrix_transform.hpp>
 
 Camera::Camera(const glm::vec3 pos, const glm::vec3 up, const float yaw,
                const float pitch)
@@ -6,4 +7,16 @@ Camera::Camera(const glm::vec3 pos, const glm::vec3 up, const float yaw,
   UpdateCameraVectors();
 }
 
-void Camera::UpdateCameraVectors() {}
+void Camera::UpdateCameraVectors() {
+  glm::vec3 front;
+  front.x = cos(glm::radians(_yaw)) * cos(glm::radians(_pitch));
+  front.y = sin(glm::radians(_pitch));
+  front.z = sin(glm::radians(_yaw)) * cos(glm::radians(_pitch));
+  _front = glm::normalize(front);
+  _right = glm::normalize(glm::cross(_front, _worldUp));
+  _up = glm::normalize(glm::cross(_right, _front));
+}
+
+glm::mat4 Camera::GetViewMatrix() const {
+  return glm::lookAt(_position, _position + _front, _up);
+}
