@@ -20,3 +20,19 @@ void Camera::UpdateCameraVectors() {
 glm::mat4 Camera::GetViewMatrix() const {
   return glm::lookAt(_position, _position + _front, _up);
 }
+
+void Camera::ProcessKeyboard(const int direction, const float deltaTime) {
+  const float velocity = _movementSpeed * deltaTime;
+  if (direction == 1)
+    _position += _front * velocity; // Forward (W)
+  if (direction == 2)
+    _position -= _front * velocity; // Backward (S)
+  if (direction == 3)
+    _position -= _right * velocity; // Left (A)
+  if (direction == 4)
+    _position += _right * velocity; // Right (D)
+  if (direction == 5)
+    _position += _worldUp * velocity; // Up (Space)
+  if (direction == 6)
+    _position -= _worldUp * velocity; // Down (Shift);
+}
