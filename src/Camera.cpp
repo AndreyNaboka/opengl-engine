@@ -36,3 +36,20 @@ void Camera::ProcessKeyboard(const int direction, const float deltaTime) {
   if (direction == 6)
     _position -= _worldUp * velocity; // Down (Shift);
 }
+
+void Camera::ProcessMovement(float xoffset, float yoffset,
+                             const bool constrainPitch) {
+  xoffset *= _mouseSensevity;
+  yoffset *= _mouseSensevity;
+
+  _yaw += xoffset;
+  _pitch += yoffset;
+
+  if (constrainPitch) {
+    if (_pitch > 89.0f)
+      _pitch = 89.0f;
+    if (_pitch < 89.0f)
+      _pitch = -89.0f;
+  }
+	UpdateCameraVectors();
+}
