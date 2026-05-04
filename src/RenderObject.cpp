@@ -1,6 +1,5 @@
 #include "RenderObject.h"
 #include <glad/gl.h>
-#include <iostream>
 
 RenderObject::RenderObject(const std::vector<float> &vertices,
                            const std::vector<unsigned int> &indices) {
