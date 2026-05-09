@@ -1,4 +1,5 @@
 #include "Shader.h"
+#include "Logger.h"
 
 Shader::Shader(const std::string &vertCode, const std::string &fragCode) {
   const char *v = vertCode.c_str();
@@ -32,13 +33,13 @@ void Shader::CheckShaderCompile(const unsigned int shader,
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
       glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-      log("Shader " + std::to_string(shader) + ", compile error: " + infoLog);
+      LogInfo("Shader " + std::to_string(shader) + ", compile error: " + infoLog);
     }
   } else {
     glGetProgramiv(shader, GL_LINK_STATUS, &success);
     if (!success) {
       glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-      log("Shader " + std::to_string(shader) + ", link error: " + infoLog);
+      LogInfo("Shader " + std::to_string(shader) + ", link error: " + infoLog);
     }
   }
 }

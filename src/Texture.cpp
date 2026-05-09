@@ -6,7 +6,7 @@
 
 Texture::Texture(const std::string &path) {
   if (path.empty())
-    log("Can't create texture with empty path");
+   LogInfo("Can't create texture with empty path");
 
   stbi_set_flip_vertically_on_load(true);
   unsigned char *data =
@@ -25,7 +25,7 @@ Texture::Texture(const std::string &path) {
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
   } else {
-    log("Can't get image data from path: " + path + ", generate white texture");
+    LogInfo("Can't get image data from path: " + path + ", generate white texture");
     unsigned char white[] = {255, 255, 255};
     glGenTextures(1, &_ID);
     glBindTexture(GL_TEXTURE_2D, _ID);

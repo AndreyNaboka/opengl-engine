@@ -4,7 +4,7 @@
 
 void InputManager::Init(GLFWwindow *wnd) {
   if (!wnd) {
-    log("[InputManager] Init. GLFWwindow must be not null");
+    LogInfo("[InputManager] Init. GLFWwindow must be not null");
     return;
   }
   _wnd = wnd;

@@ -1,10 +1,11 @@
 #include "Logger.h"
 #include <Window.h>
 #include <cassert>
+#include <glad/gl.h>
 
 Window::Window(const int width, const int height, const std::string &title) {
   if (!glfwInit())
-    log("[Window] Can't init glfw");
+    LogInfo("[Window] Can't init glfw");
 
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -12,9 +13,15 @@ Window::Window(const int width, const int height, const std::string &title) {
 
   _wnd = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
   if (!_wnd)
-    log("[Window] Can't create window");
+    LogInfo("[Window] Can't create window");
 
   glfwMakeContextCurrent(_wnd);
+
+  const int versionGLAD = gladLoadGL(glfwGetProcAddress);
+  if (versionGLAD == 0) {
+    LogInfo("[Window] Failed to load OpenGL context");
+  }
+
   glfwSetFramebufferSizeCallback(
       _wnd, [](GLFWwindow *, int w, int h) { glViewport(0, 0, w, h); });
   glfwSetInputMode(_wnd, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -26,7 +33,9 @@ Window::~Window() {
 }
 
 bool Window::ShouldClose() const { return glfwWindowShouldClose(_wnd); }
-void Window::PollEvents() const { glfwPollEvents(); }
+void Window::PollEvents() const {
+  glfwPollEvents();
+}
 void Window::SwapBuffers() const { glfwSwapBuffers(_wnd); }
 float Window::GetWidth() const {
   int w, h;

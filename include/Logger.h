@@ -18,8 +18,9 @@ public:
   }
 };
 
-inline void log(const std::string &t) { Logger::GetInstance().out(t); }
+inline void LogInfo(const std::string &t) { Logger::GetInstance().out(t); }
 
-inline void log(const std::string &t, std::initializer_list<double> numbers) {
+inline void LogInfo(const std::string &t, std::initializer_list<double> numbers) {
   Logger::GetInstance().out(t, numbers);
 }
+

@@ -11,7 +11,7 @@ public:
   static std::optional<Shader> Create(const std::string &v,
                                       const std::string &f) {
     if (v.empty() || f.empty()) {
-      log("Shaders code can't be empty");
+      LogInfo("Shaders code can't be empty");
       return std::nullopt;
     }
     return Shader(v, f);

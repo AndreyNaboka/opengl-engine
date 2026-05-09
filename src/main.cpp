@@ -1,6 +1,7 @@
 #include "Window.h"
 #include "InputManager.h"
 #include <string>
+#include "Logger.h"
 
 int main() {
   Window wnd(600, 400, std::string("World"));
