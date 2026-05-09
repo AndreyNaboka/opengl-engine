@@ -1,5 +1,4 @@
 #include "Window.h"
-#include <memory>
 #include <string>
 
 int main() {
