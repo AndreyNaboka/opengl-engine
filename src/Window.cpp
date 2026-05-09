@@ -22,6 +22,18 @@ Window::Window(const int width, const int height, const std::string &title) {
     LogInfo("[Window] Failed to load OpenGL context");
   }
 
+  auto GetGLString = [](GLenum name) -> std::string {
+    const char *str = reinterpret_cast<const char *>(glGetString(name));
+    return str ? str : "Unknown";
+  };
+
+  const std::string renderer = "GPU:" + GetGLString(GL_RENDERER);
+  const std::string vendor = "Vendor: " + GetGLString(GL_VENDOR);
+  const std::string version = "OpenGL: " + GetGLString(GL_VERSION);
+  LogInfo(renderer);
+  LogInfo(vendor);
+  LogInfo(version);
+
   glfwSetFramebufferSizeCallback(
       _wnd, [](GLFWwindow *, int w, int h) { glViewport(0, 0, w, h); });
   glfwSetInputMode(_wnd, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
