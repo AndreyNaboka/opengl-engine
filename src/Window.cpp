@@ -1,7 +1,7 @@
 #include "Logger.h"
-#include <Window.h>
-#include <cassert>
 #include <glad/gl.h>
+#include <GLFW/glfw3.h>
+#include <Window.h>
 
 Window::Window(const int width, const int height, const std::string &title) {
   if (!glfwInit())
@@ -32,16 +32,20 @@ Window::~Window() {
   glfwTerminate();
 }
 
+void Window::Close() const { glfwSetWindowShouldClose(_wnd, GLFW_TRUE); }
+
 bool Window::ShouldClose() const { return glfwWindowShouldClose(_wnd); }
-void Window::PollEvents() const {
-  glfwPollEvents();
-}
+
+void Window::PollEvents() const { glfwPollEvents(); }
+
 void Window::SwapBuffers() const { glfwSwapBuffers(_wnd); }
+
 float Window::GetWidth() const {
   int w, h;
   glfwGetWindowSize(_wnd, &w, &h);
   return static_cast<float>(w);
 }
+
 float Window::GetHeight() const {
   int w, h;
   glfwGetWindowSize(_wnd, &w, &h);

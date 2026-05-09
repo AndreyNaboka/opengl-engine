@@ -13,6 +13,7 @@ public:
   void SwapBuffers() const;
   float GetWidth() const;
   float GetHeight() const;
+  void Close() const;
   GLFWwindow *GetNativeHanle() const { return _wnd; }
 
 private:

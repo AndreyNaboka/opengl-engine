@@ -1,7 +1,7 @@
 #include "Window.h"
+#include <GLFW/glfw3.h>
 #include "InputManager.h"
 #include <string>
-#include "Logger.h"
 
 int main() {
   Window wnd(600, 400, std::string("World"));
@@ -11,6 +11,12 @@ int main() {
 
   while (!wnd.ShouldClose()) {
     input.Update();
+
+    if (input.IsKeyPressed(GLFW_KEY_ESCAPE)) {
+      wnd.Close();
+      continue;
+    }
+
     wnd.SwapBuffers();
     wnd.PollEvents();
   }
