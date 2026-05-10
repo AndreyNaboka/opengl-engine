@@ -1,29 +1,31 @@
 #pragma once
-#include <glm/ext.hpp>
-#include <glm/ext/matrix_float4x4.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+class InputManager;
 
 class Camera {
 public:
-  Camera(const glm::vec3 pos = glm::vec3(0.0f, 5.0f, 10.0f),
-         const glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0),
-         const float yaw = -90.0f, const float pitch = 0.0f);
+  Camera(glm::vec3 position = {0.0f, 5.0f, 10.0f}, float fov = 45.0f,
+         float aspect = 16.0f / 9.0f);
+
+  void Update(const InputManager &input, float deltaTime);
   glm::mat4 GetViewMatrix() const;
-  void ProcessKeyboard(const int direction, const float deltaTime);
-  void ProcessMovement(float xoffset, float yoffset,
-                       const bool constrainPitch = true);
+  glm::mat4 GetProjectionMatrix() const;
+
+  const glm::vec3 &GetPosition() const { return _position; }
+  const glm::vec3 &GetFront() const { return _front; }
 
 private:
-  void UpdateCameraVectors();
-
-private:
-  glm::vec3 _position;
-  glm::vec3 _front;
-  glm::vec3 _up;
-  glm::vec3 _right;
-  glm::vec3 _worldUp;
+  glm::vec3 _position, _front, _up, _right, _worldUp;
   float _yaw = 0.0f;
   float _pitch = 0.0f;
-  float _movementSpeed = 1.0f;
-  float _mouseSensevity = 1.0f;
+  float _movementSpeed = 0.0f;
+  float _mouseSensitivity = 0.0f;
+  float _FOV = 0.0f;
+  float _aspect = 0.0f;
+  float _nearPlane = 0.0f;
+  float _farPlane = 0.0f;
+
+  void UpdateVectors();
 };

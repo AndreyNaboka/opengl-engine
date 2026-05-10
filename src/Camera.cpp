@@ -1,13 +1,53 @@
 #include "Camera.h"
-#include <glm/ext/matrix_transform.hpp>
+#include "InputManager.h"
+#include <GLFW/glfw3.h>
+#include <glm/gtc/constants.hpp>
 
-Camera::Camera(const glm::vec3 pos, const glm::vec3 up, const float yaw,
-               const float pitch)
-    : _position(pos), _worldUp(up), _yaw(yaw), _pitch(pitch) {
-  UpdateCameraVectors();
+Camera::Camera(glm::vec3 position, float fov, float aspect)
+    : _position(position), _front(0.0f, 0.0f, -1.0f), _up(0.0f, 1.0f, 0.0f),
+      _worldUp(0.0f, 1.0f, 0.0f), _yaw(-90.0f), _pitch(0.0f),
+      _movementSpeed(6.0f), _mouseSensitivity(0.15f), _FOV(fov),
+      _aspect(aspect), _nearPlane(0.1f), _farPlane(1000.0f) {
+  UpdateVectors();
 }
 
-void Camera::UpdateCameraVectors() {
+void Camera::Update(const InputManager &input, float deltaTime) {
+  const float velocity = _movementSpeed * deltaTime;
+
+  if (input.IsKeyPressed(GLFW_KEY_W))
+    _position += _front * velocity;
+  if (input.IsKeyPressed(GLFW_KEY_S))
+    _position -= _front * velocity;
+  if (input.IsKeyPressed(GLFW_KEY_A))
+    _position -= _right * velocity;
+  if (input.IsKeyPressed(GLFW_KEY_D))
+    _position += _right * velocity;
+  if (input.IsKeyPressed(GLFW_KEY_SPACE))
+    _position += _worldUp * velocity;
+  if (input.IsKeyPressed(GLFW_KEY_LEFT_SHIFT))
+    _position -= _worldUp * velocity;
+
+  float dx, dy;
+  input.GetMouseDelta(dx, dy);
+  dx *= _mouseSensitivity;
+  dy *= _mouseSensitivity;
+
+  _yaw += dx;
+  _pitch += dy;
+  _pitch = glm::clamp(_pitch, -89.0f, 89.0f);
+
+  UpdateVectors();
+}
+
+glm::mat4 Camera::GetViewMatrix() const {
+  return glm::lookAt(_position, _position + _front, _up);
+}
+
+glm::mat4 Camera::GetProjectionMatrix() const {
+  return glm::perspective(glm::radians(_FOV), _aspect, _nearPlane, _farPlane);
+}
+
+void Camera::UpdateVectors() {
   glm::vec3 front;
   front.x = cos(glm::radians(_yaw)) * cos(glm::radians(_pitch));
   front.y = sin(glm::radians(_pitch));
@@ -15,41 +55,4 @@ void Camera::UpdateCameraVectors() {
   _front = glm::normalize(front);
   _right = glm::normalize(glm::cross(_front, _worldUp));
   _up = glm::normalize(glm::cross(_right, _front));
-}
-
-glm::mat4 Camera::GetViewMatrix() const {
-  return glm::lookAt(_position, _position + _front, _up);
-}
-
-void Camera::ProcessKeyboard(const int direction, const float deltaTime) {
-  const float velocity = _movementSpeed * deltaTime;
-  if (direction == 1)
-    _position += _front * velocity; // Forward (W)
-  if (direction == 2)
-    _position -= _front * velocity; // Backward (S)
-  if (direction == 3)
-    _position -= _right * velocity; // Left (A)
-  if (direction == 4)
-    _position += _right * velocity; // Right (D)
-  if (direction == 5)
-    _position += _worldUp * velocity; // Up (Space)
-  if (direction == 6)
-    _position -= _worldUp * velocity; // Down (Shift);
-}
-
-void Camera::ProcessMovement(float xoffset, float yoffset,
-                             const bool constrainPitch) {
-  xoffset *= _mouseSensevity;
-  yoffset *= _mouseSensevity;
-
-  _yaw += xoffset;
-  _pitch += yoffset;
-
-  if (constrainPitch) {
-    if (_pitch > 89.0f)
-      _pitch = 89.0f;
-    if (_pitch < 89.0f)
-      _pitch = -89.0f;
-  }
-	UpdateCameraVectors();
 }
