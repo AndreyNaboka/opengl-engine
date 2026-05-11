@@ -16,6 +16,8 @@ public:
   const glm::vec3 &GetPosition() const { return _position; }
   const glm::vec3 &GetFront() const { return _front; }
 
+  void SetAspect(const float aspect) { _aspect = aspect; }
+
 private:
   glm::vec3 _position, _front, _up, _right, _worldUp;
   float _yaw = 0.0f;

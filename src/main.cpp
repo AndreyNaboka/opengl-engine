@@ -36,22 +36,27 @@ int main() {
     float now = glfwGetTime();
     float dt = now - lastTime;
     lastTime = now;
-    
+
     wnd.PollEvents();
 
     camera.Update(input, dt);
-   
+
     if (input.IsKeyPressed(GLFW_KEY_ESCAPE)) {
       wnd.Close();
       continue;
     }
+
+    int fbW = wnd.GetFramebufferWidth();
+    int fbH = wnd.GetFramebufferHeight();
+    glViewport(0, 0, fbW, fbH);
+    camera.SetAspect(static_cast<float>(fbW) / static_cast<float>(fbH));
 
     Renderer::BeginScene(camera);
     Renderer::Submit(groundCmd);
     Renderer::EndScene();
 
     wnd.SwapBuffers();
-    
+
     input.Update();
   }
 

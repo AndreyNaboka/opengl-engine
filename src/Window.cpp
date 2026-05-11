@@ -43,6 +43,23 @@ Window::~Window() {
   glfwTerminate();
 }
 
+int Window::GetFramebufferWidth() const {
+  int w, h;
+  glfwGetFramebufferSize(_wnd, &w, &h);
+  return w;
+}
+
+int Window::GetFramebufferHeight() const {
+  int w, h;
+  glfwGetFramebufferSize(_wnd, &w, &h);
+  return h;
+}
+
+float Window::GetAspectRatio() const {
+  return static_cast<float>(GetFramebufferWidth()) /
+         static_cast<float>(GetFramebufferHeight());
+}
+
 void Window::Close() const { glfwSetWindowShouldClose(_wnd, GLFW_TRUE); }
 
 bool Window::ShouldClose() const { return glfwWindowShouldClose(_wnd); }
