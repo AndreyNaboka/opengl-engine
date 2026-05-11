@@ -22,7 +22,7 @@ void main() {
  
   vec3 texColor = texture(u_Texture, v_UV).rgb;
   vec3 litColor = (ambient + diffuse) * texColor;
-  vec3 fogColor = vec3(0.65, 0.75, 0.9); // Цвет неба из glClearColor
+  vec3 fogColor = vec3(0.1, 0.15, 0.1); // Цвет неба из glClearColor
  
   FragColor = vec4(mix(litColor, fogColor, fogFactor), 1.0);
 }

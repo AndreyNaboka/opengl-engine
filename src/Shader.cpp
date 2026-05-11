@@ -57,7 +57,7 @@ void Shader::SetUniformInt(const std::string &name, int value) const {
 }
 
 std::string Shader::ReadFile(const std::string &path) const {
-  LogInfo("Try to open shader from " + path);
+  LogInfo("[Shader] Try to open shader from " + path);
   std::ifstream file(path);
   if (!file.is_open())
     LogInfo("[Shader] Failed to open shader: " + path);
