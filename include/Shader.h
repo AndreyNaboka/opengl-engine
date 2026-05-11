@@ -1,36 +1,27 @@
 #pragma once
-#include "Logger.h"
-#include <glad/gl.h>
-#include <glm/ext.hpp>
-#include <glm/glm.hpp>
-#include <optional>
 #include <string>
+#include <unordered_map>
+#include <glm/glm.hpp>
 
 class Shader {
 public:
-  static std::optional<Shader> Create(const std::string &v,
-                                      const std::string &f) {
-    if (v.empty() || f.empty()) {
-      LogInfo("Shaders code can't be empty");
-      return std::nullopt;
-    }
-    return Shader(v, f);
-  }
+  Shader(const std::string &vertexPath, const std::string &fragmentPath);
+  ~Shader();
 
-  const unsigned int GetID() const { return _ID; }
-  void Use() { glUseProgram(_ID); }
-  void setMat4(const std::string &name, const glm::mat4 &mat) {
-    glUniformMatrix4fv(glGetUniformLocation(_ID, name.c_str()), 1, GL_FALSE,
-                       glm::value_ptr(mat));
-  }
-  void setInt(const std::string &name, int value) {
-    glUniform1i(glGetUniformLocation(_ID, name.c_str()), value);
-  }
+  void Bind() const;
+  void Unbind() const;
+
+  void SetUniformMat4(const std::string &name, const glm::mat4 &matrix) const;
+  void SetUniformVec3(const std::string &name, const glm::vec3 &vector) const;
+  void SetUniformInt(const std::string &name, int value) const;
+
+  unsigned int GetID() const { return _ID; }
 
 private:
-  Shader(const std::string &vertCode, const std::string &fragCode);
-  void CheckShaderCompile(const unsigned int shader, const std::string &type);
+  unsigned int _ID;
+  mutable std::unordered_map<std::string, int> _cache;
 
-private:
-  unsigned int _ID = 0;
+  int GetUniformLocation(const std::string &name) const;
+  std::string ReadFile(const std::string &path) const;
+  unsigned int Compile(unsigned int type, const std::string &source) const;
 };
