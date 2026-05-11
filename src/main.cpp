@@ -36,10 +36,11 @@ int main() {
     float now = glfwGetTime();
     float dt = now - lastTime;
     lastTime = now;
+    
+    wnd.PollEvents();
 
-    input.Update();
     camera.Update(input, dt);
-
+   
     if (input.IsKeyPressed(GLFW_KEY_ESCAPE)) {
       wnd.Close();
       continue;
@@ -50,7 +51,8 @@ int main() {
     Renderer::EndScene();
 
     wnd.SwapBuffers();
-    wnd.PollEvents();
+    
+    input.Update();
   }
 
   return 0;

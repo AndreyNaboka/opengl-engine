@@ -9,8 +9,9 @@ void InputManager::Init(GLFWwindow *wnd) {
   }
   _wnd = wnd;
   glfwSetWindowUserPointer(_wnd, this);
-  glfwGetCursorPos(_wnd, &_lastMouseX, &_lastMouseY);
   glfwSetCursorPosCallback(_wnd, MouseCallback);
+  glfwSetInputMode(_wnd, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwGetCursorPos(_wnd, &_lastMouseX, &_lastMouseY);
 }
 
 void InputManager::Update() {
@@ -19,7 +20,7 @@ void InputManager::Update() {
 }
 
 bool InputManager::IsKeyPressed(const int key) const {
-  return glfwGetKey(_wnd, key);
+  return glfwGetKey(_wnd, key) == GLFW_PRESS;
 }
 
 void InputManager::GetMouseDelta(float &x, float &y) const {

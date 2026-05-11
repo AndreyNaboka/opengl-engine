@@ -36,7 +36,6 @@ Window::Window(const int width, const int height, const std::string &title) {
 
   glfwSetFramebufferSizeCallback(
       _wnd, [](GLFWwindow *, int w, int h) { glViewport(0, 0, w, h); });
-  glfwSetInputMode(_wnd, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 Window::~Window() {
