@@ -3,13 +3,14 @@
 
 class Texture {
 public:
-  Texture(const std::string &pathToTexture);
-  void Bind(const unsigned int slot = 0);
-  unsigned int GetID() const { return _ID; }
+  explicit Texture(const std::string &path);
+  ~Texture();
+  void Bind(unsigned int slot = 0) const;
+  int GetWidth() const { return _width; }
+  int GetHeight() const { return _height; }
 
 private:
-  int _channels = 0;
+  unsigned int _ID = 0;
   int _width = 0;
   int _height = 0;
-  unsigned int _ID = 0;
 };
