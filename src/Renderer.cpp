@@ -11,7 +11,9 @@ void Renderer::Init() {
 }
 
 void Renderer::BeginScene(const Camera &camera) {
-  // Set the scene data
+  _sceneData.view = camera.GetViewMatrix();
+  _sceneData.projection = camera.GetProjectionMatrix();
+  _sceneData.cameraPos = camera.GetPosition();
   _cmdQueue.clear();
 }
 
@@ -20,5 +22,18 @@ void Renderer::Submit(const RenderCommand &cmd) { _cmdQueue.push_back(cmd); }
 void Renderer::EndScene() {
   glClearColor(0.1f, 0.35f, 0.65f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  for (const auto &c : _cmdQueue) {
+    c.shader->Bind();
+    c.shader->SetUniformMat4("u_View", _sceneData.view);
+    c.shader->SetUniformMat4("u_Projection", _sceneData.projection);
+    c.shader->SetUniformMat4("u_Model", c.model);
+    c.shader->SetUniformVec3("u_CameraPos", _sceneData.cameraPos);
+    if (c.texture) {
+      c.texture->Bind(c.slot);
+      c.shader->SetUniformInt("u_Texture", c.slot);
+    }
+    c.mesh->Draw();
+  }
   _cmdQueue.clear();
 }
