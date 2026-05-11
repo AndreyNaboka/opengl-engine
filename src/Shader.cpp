@@ -1,12 +1,16 @@
 #include "Shader.h"
 #include "Logger.h"
+#include "PathUtils.h"
 #include <glad/gl.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <fstream>
 
 Shader::Shader(const std::string &vertexPath, const std::string &fragmentPath) {
-  unsigned int vs = Compile(GL_VERTEX_SHADER, ReadFile(vertexPath));
-  unsigned int fs = Compile(GL_FRAGMENT_SHADER, ReadFile(fragmentPath));
+  auto vPath = Path::ResolveAssetPath(vertexPath);
+  auto fPath = Path::ResolveAssetPath(fragmentPath);
+
+  unsigned int vs = Compile(GL_VERTEX_SHADER, ReadFile(vPath.string()));
+  unsigned int fs = Compile(GL_FRAGMENT_SHADER, ReadFile(fPath.string()));
 
   _ID = glCreateProgram();
   glAttachShader(_ID, vs);
@@ -33,7 +37,7 @@ int Shader::GetUniformLocation(const std::string &name) const {
   if (_cache.find(name) == _cache.end()) {
     int loc = glGetUniformLocation(_ID, name.c_str());
     if (loc == -1)
-      LogInfo("[Shader] uniform + " + name + " not found");
+      LogInfo("[Shader] uniform " + name + " not found");
     _cache[name] = loc;
   }
   return _cache[name];
@@ -53,6 +57,7 @@ void Shader::SetUniformInt(const std::string &name, int value) const {
 }
 
 std::string Shader::ReadFile(const std::string &path) const {
+  LogInfo("Try to open shader from " + path);
   std::ifstream file(path);
   if (!file.is_open())
     LogInfo("[Shader] Failed to open shader: " + path);

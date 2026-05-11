@@ -3,10 +3,13 @@
 #include <stb_image.h>
 #include <glad/gl.h>
 #include "Logger.h"
+#include "PathUtils.h"
 
 Texture::Texture(const std::string &path) {
   stbi_set_flip_vertically_on_load(true);
-  unsigned char *data = stbi_load(path.c_str(), &_width, &_height, nullptr, 4);
+  auto absolutePath = Path::ResolveAssetPath(path);
+  unsigned char *data =
+      stbi_load(absolutePath.string().c_str(), &_width, &_height, nullptr, 4);
   if (!data) {
     LogInfo("[Texture] Failed to load: " + path);
     _width = _height = 1;
