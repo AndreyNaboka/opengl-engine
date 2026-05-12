@@ -1,5 +1,5 @@
 #include "InputManager.h"
-#include "Logger.h"
+#include "Utils/Logger.h"
 #include <GLFW/glfw3.h>
 
 void InputManager::Init(GLFWwindow *wnd) {

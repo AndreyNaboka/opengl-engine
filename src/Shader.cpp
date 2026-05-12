@@ -1,6 +1,6 @@
 #include "Shader.h"
-#include "Logger.h"
-#include "PathUtils.h"
+#include "Utils/Logger.h"
+#include "Utils/PathUtils.h"
 #include <glad/gl.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <fstream>

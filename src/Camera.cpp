@@ -6,7 +6,7 @@
 Camera::Camera(glm::vec3 position, float fov, float aspect)
     : _position(position), _front(0.0f, 0.0f, -1.0f), _up(0.0f, 1.0f, 0.0f),
       _worldUp(0.0f, 1.0f, 0.0f), _yaw(-90.0f), _pitch(0.0f),
-      _movementSpeed(6.0f), _mouseSensitivity(0.15f), _FOV(fov),
+      _movementSpeed(12.0f), _mouseSensitivity(0.15f), _FOV(fov),
       _aspect(aspect), _nearPlane(0.1f), _farPlane(1000.0f) {
   UpdateVectors();
 }

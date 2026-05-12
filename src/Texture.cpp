@@ -2,8 +2,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include <glad/gl.h>
-#include "Logger.h"
-#include "PathUtils.h"
+#include "Utils/Logger.h"
+#include "Utils/PathUtils.h"
 
 Texture::Texture(const std::string &path) {
   stbi_set_flip_vertically_on_load(true);
