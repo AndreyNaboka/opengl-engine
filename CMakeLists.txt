@@ -31,6 +31,17 @@ file(GLOB_RECURSE SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 # build
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
+# cgltf
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/third_party/cgltf
+)
+target_sources(${PROJECT_NAME} PRIVATE
+    third_party/cgltf/cgltf_impl.cpp
+)
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE CGLTF_NO_STDIO)
+endif()
+
 # includes
 target_include_directories(
   ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
