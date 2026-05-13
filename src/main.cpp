@@ -7,6 +7,7 @@
 #include <Renderer.h>
 #include <memory>
 #include <string>
+#include "GltfLoader.h"
 
 int main() {
   Window wnd(1200, 800, std::string("World"));
@@ -29,6 +30,8 @@ int main() {
   groundCmd.model = glm::mat4(1.0f);
 
   float lastTime = 0.0f;
+  
+  GltfLoader::Load("assets/models/enemy.glb");
 
   wnd.PollEvents();
 
