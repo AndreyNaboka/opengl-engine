@@ -19,9 +19,4 @@ class GltfLoader {
 public:
   // Статический метод загрузки. Возвращает shared-данные модели.
   static GltfModelData Load(const std::string &assetPath);
-
-private:
-  // Колбэки для cgltf (чтение файлов и освобождение памяти)
-  static void *CgltfReadFile(void *user, const char *path, size_t *outSize);
-  static void CgltfReleaseFile(void *user, void *data);
 };
