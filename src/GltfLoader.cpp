@@ -28,7 +28,20 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     LogInfo("[GltfLoader] empty model");
     return result;
   }
-  //49
+
+  const cgltf_mesh &mesh = data->meshes[0];
+  const cgltf_primitive &prim = mesh.primitives[0];
+  bool isSkinned = false;
+  cgltf_skin *activeSkin = nullptr;
+  for (size_t n = 0; n < data->nodes_count; ++n) {
+    const cgltf_node *node = &data->nodes[n];
+    if (node->mesh == &data->meshes[0] && node->skin != nullptr) {
+      isSkinned = true;
+      activeSkin = node->skin;
+      break;
+    }
+  }
+  result.isSkinned = isSkinned;
 
   //--------------------------------------
   LogInfo("[GltfLoader] load success");
