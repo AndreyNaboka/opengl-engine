@@ -1,10 +1,18 @@
 #pragma once
+#include <glm/glm.hpp>
 #include <vector>
 
 struct Vertex {
-  float x, y, z;
-  float nx, ny, nz;
-  float u, v;
+  glm::vec3 position;
+  glm::vec3 normal;
+  glm::vec2 uv;
+  int boneIds[4] = {-1, -1, -1, -1};
+  float boneWeights[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+  Vertex() = default;
+
+  Vertex(glm::vec3 pos, glm::vec3 norm, glm::vec2 tex)
+      : position(pos), normal(norm), uv(tex) {}
 };
 
 class Mesh {

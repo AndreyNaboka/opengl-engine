@@ -1,10 +1,12 @@
 #include <cgltf.h>
 #include <glm/gtc/quaternion.hpp>
 #include "GltfLoader.h"
+#include "Mesh.h"
 #include "Utils/PathUtils.h"
 #include "Utils/Logger.h"
 #include <algorithm>
 #include <string>
+#include <cstring>
 
 GltfModelData GltfLoader::Load(const std::string &assetPath) {
   GltfModelData result;
@@ -46,10 +48,29 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   const cgltf_accessor *posAcc = nullptr;
   const cgltf_accessor *normAcc = nullptr;
   const cgltf_accessor *uvAcc = nullptr;
-  const cgltf_accessor *jointAcc = nullptr;
-  const cgltf_accessor *weightAcc = nullptr;
+  const cgltf_accessor *jointsAcc = nullptr;
+  const cgltf_accessor *weightsAcc = nullptr;
   for (size_t i = 0; i < prim.attributes_count; ++i) {
+    const auto &attr = prim.attributes[i];
+    if (strcmp(attr.name, "POSITION") == 0)
+      posAcc = attr.data;
+    else if (strcmp(attr.name, "NORMAL") == 0)
+      normAcc = attr.data;
+    else if (strcmp(attr.name, "TEXCOORD_0") == 0)
+      uvAcc = attr.data;
+    else if (strcmp(attr.name, "JOINTS_0") == 0)
+      jointsAcc = attr.data;
+    else if (strcmp(attr.name, "WEIGHTS_0") == 0)
+      weightsAcc = attr.data;
   }
+  if (!posAcc) {
+    cgltf_free(data);
+    LogInfo("[GltfLoader] Missing POSITION attrbute");
+  }
+
+  // vertex count
+  const size_t vCount = posAcc->count;
+  std::vector<Vertex> vertices(vCount);
 
   //--------------------------------------
   LogInfo("[GltfLoader] load success");
