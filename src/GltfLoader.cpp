@@ -43,6 +43,14 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   }
   result.isSkinned = isSkinned;
 
+  const cgltf_accessor *posAcc = nullptr;
+  const cgltf_accessor *normAcc = nullptr;
+  const cgltf_accessor *uvAcc = nullptr;
+  const cgltf_accessor *jointAcc = nullptr;
+  const cgltf_accessor *weightAcc = nullptr;
+  for (size_t i = 0; i < prim.attributes_count; ++i) {
+  }
+
   //--------------------------------------
   LogInfo("[GltfLoader] load success");
   cgltf_free(data);
