@@ -72,6 +72,22 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   const size_t vCount = posAcc->count;
   std::vector<Vertex> vertices(vCount);
 
+  auto ReadFloatAttr = [&](const cgltf_accessor *acc, float *out,
+                           size_t count) {
+    if (acc)
+      cgltf_accessor_read_float(acc, 0, out, count);
+  };
+  ReadFloatAttr(posAcc, reinterpret_cast<float *>(&vertices[0].position),
+                vCount * 3);
+  ReadFloatAttr(normAcc, reinterpret_cast<float *>(&vertices[0].normal),
+                vCount * 3);
+  if (uvAcc) {
+    std::vector<float> temp(vCount * 2);
+    cgltf_accessor_read_float(uvAcc, 0, temp.data(), vCount * 2);
+    for (size_t i = 0; i < vCount; ++i)
+      vertices[i].uv = {temp[i * 2], temp[i * 2 + 1]};
+  }
+
   //--------------------------------------
   LogInfo("[GltfLoader] load success");
   cgltf_free(data);
