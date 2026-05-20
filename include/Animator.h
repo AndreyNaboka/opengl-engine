@@ -19,7 +19,7 @@ private:
   void CalculateBoneTransforms(size_t boneIndex,
                                const glm::mat4 &parentTransform, float ime);
   Keyframe Interpolate(const std::vector<Keyframe> &keys, float time);
-  glm::mat4 TransformFromKeyframe(const Keyframe *kf);
+  glm::mat4 TransformFromKeyframe(const Keyframe &kf);
 
 private:
   const Animation *_currentAnim = nullptr;

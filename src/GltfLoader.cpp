@@ -255,7 +255,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     anim->duration = maxTime;
     result.animations.push_back(anim);
   }
-	
+
   cgltf_free(data);
   return result;
 }
