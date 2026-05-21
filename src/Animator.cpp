@@ -1,5 +1,6 @@
 #include "Animator.h"
 #include <cmath>
+#include <algorithm>
 
 void Animator::SetAnimation(const Animation *anim,
                             const std::vector<glm::mat4> &inverseBindMatrices,
@@ -76,11 +77,47 @@ void Animator::CalculateBoneTransforms(size_t boneIndex,
     break;
   }
 }
+
 Keyframe Animator::Interpolate(const std::vector<Keyframe> &keys, float time) {
-  Keyframe kf;
-  return kf;
+  if (keys.empty())
+    return Keyframe{time};
+  if (keys.size() == 1)
+    return keys[0];
+
+  // Бинарный поиск позиции времени
+  auto it =
+      std::lower_bound(keys.begin(), keys.end(), time,
+                       [](const Keyframe &k, float t) { return k.time < t; });
+
+  if (it == keys.begin())
+    return keys[0];
+  if (it == keys.end())
+    return keys.back();
+
+  const Keyframe &k0 = *(it - 1);
+  const Keyframe &k1 = *it;
+  float t = (time - k0.time) / (k1.time - k0.time);
+  t = glm::clamp(t, 0.0f, 1.0f);
+
+  Keyframe result{time};
+  if (k0.hasPosition) {
+    result.position = glm::mix(k0.position, k1.position, t);
+    result.hasPosition = true;
+  }
+  if (k0.hasRotation) {
+    result.rotation = glm::slerp(k0.rotation, k1.rotation, t);
+    result.hasRotation = true;
+  }
+  if (k0.hasScale) {
+    result.scale = glm::mix(k0.scale, k1.scale, t);
+    result.hasScale = true;
+  }
+  return result;
 }
+
 glm::mat4 Animator::TransformFromKeyframe(const Keyframe &kf) {
-  glm::mat4 m;
-  return m;
+  glm::mat4 t = glm::translate(glm::mat4(1.0f), kf.position);
+  t *= glm::mat4_cast(kf.rotation);
+  t = glm::scale(t, kf.scale);
+  return t;
 }
