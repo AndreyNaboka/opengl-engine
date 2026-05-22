@@ -3,15 +3,18 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "Mesh.h"
+#include "Animator.h"
+#include <glm/fwd.hpp>
 #include <glm/glm.hpp>
 #include <vector>
 
 struct RenderCommand {
   const Mesh *mesh;
   const Shader *shader;
+  const Animator *animator = nullptr;
   const Texture *texture;
   unsigned int slot;
-  glm::mat4 model;
+  glm::mat4 model = glm::mat4(1.0f);
 };
 
 class Renderer {

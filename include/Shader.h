@@ -16,12 +16,12 @@ public:
   void SetUniformInt(const std::string &name, int value) const;
 
   unsigned int GetID() const { return _ID; }
+  int GetUniformLocation(const std::string &name) const;
 
 private:
   unsigned int _ID;
   mutable std::unordered_map<std::string, int> _cache;
 
-  int GetUniformLocation(const std::string &name) const;
   std::string ReadFile(const std::string &path) const;
   unsigned int Compile(unsigned int type, const std::string &source) const;
 };

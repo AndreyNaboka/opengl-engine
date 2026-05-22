@@ -1,5 +1,6 @@
 #include <Renderer.h>
 #include <glad/gl.h>
+#include <glm/gtc/type_ptr.hpp>
 
 Renderer::SceneData Renderer::_sceneData;
 std::vector<RenderCommand> Renderer::_cmdQueue;
@@ -23,17 +24,33 @@ void Renderer::EndScene() {
   glClearColor(0.1f, 0.15f, 0.1f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  for (const auto &c : _cmdQueue) {
-    c.shader->Bind();
-    c.shader->SetUniformMat4("u_View", _sceneData.view);
-    c.shader->SetUniformMat4("u_Projection", _sceneData.projection);
-    c.shader->SetUniformMat4("u_Model", c.model);
-    c.shader->SetUniformVec3("u_CameraPos", _sceneData.cameraPos);
-    if (c.texture) {
-      c.texture->Bind(c.slot);
-      c.shader->SetUniformInt("u_Texture", c.slot);
+  for (const auto &cmd : _cmdQueue) {
+    cmd.shader->Bind();
+    cmd.shader->SetUniformMat4("u_View", _sceneData.view);
+    cmd.shader->SetUniformMat4("u_Projection", _sceneData.projection);
+    cmd.shader->SetUniformMat4("u_Model", cmd.model);
+    cmd.shader->SetUniformVec3("u_CameraPos", _sceneData.cameraPos);
+
+    if (cmd.texture) {
+      cmd.texture->Bind(cmd.slot);
+      cmd.shader->SetUniformInt("u_Texture", cmd.slot);
     }
-    c.mesh->Draw();
+
+    if (cmd.animator && cmd.animator->IsPlaying()) {
+      cmd.shader->SetUniformInt("u_Skinned", 1);
+      const auto &bones = cmd.animator->GetBoneMatrices();
+      if (!bones.empty()) {
+        int loc = cmd.shader->GetUniformLocation("u_BoneMatrices");
+        if (loc != -1) {
+          glUniformMatrix4fv(loc, static_cast<GLsizei>(bones.size()), GL_FALSE,
+                             glm::value_ptr(bones[0]));
+        }
+      }
+    } else {
+      cmd.shader->SetUniformInt("u_Skinned", 0);
+    }
+
+    cmd.mesh->Draw();
   }
   _cmdQueue.clear();
 }
