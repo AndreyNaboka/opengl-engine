@@ -46,10 +46,7 @@ void Renderer::EndScene() {
                              glm::value_ptr(bones[0]));
         }
       }
-    } else {
-//      cmd.shader->SetUniformInt("u_Skinned", 0);
     }
-
     cmd.mesh->Draw();
   }
   _cmdQueue.clear();
