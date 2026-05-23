@@ -47,7 +47,7 @@ void Renderer::EndScene() {
         }
       }
     } else {
-      cmd.shader->SetUniformInt("u_Skinned", 0);
+//      cmd.shader->SetUniformInt("u_Skinned", 0);
     }
 
     cmd.mesh->Draw();

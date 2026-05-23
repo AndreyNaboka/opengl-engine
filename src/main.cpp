@@ -69,10 +69,10 @@ int main() {
     glViewport(0, 0, fbW, fbH);
     camera.SetAspect(static_cast<float>(fbW) / static_cast<float>(fbH));
 
-	animator.Update(dt);
+    animator.Update(dt);
 
     Renderer::BeginScene(camera);
-	Renderer::Submit(cmd1);
+    Renderer::Submit(cmd1);
     Renderer::Submit(groundCmd);
     Renderer::EndScene();
 

@@ -56,6 +56,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   }
 
   if (data->meshes_count == 0) {
+    LogInfo("[GltfLoader] mesh count = 0");
     cgltf_free(data);
     return result;
   }

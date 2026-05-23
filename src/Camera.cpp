@@ -1,7 +1,10 @@
 #include "Camera.h"
 #include "InputManager.h"
+#include "Utils/Logger.h"
 #include <GLFW/glfw3.h>
 #include <glm/gtc/constants.hpp>
+#include <stdio.h>
+#include <stdlib.h>
 
 Camera::Camera(glm::vec3 position, float fov, float aspect)
     : _position(position), _front(0.0f, 0.0f, -1.0f), _up(0.0f, 1.0f, 0.0f),
@@ -37,6 +40,11 @@ void Camera::Update(const InputManager &input, float deltaTime) {
   _pitch = glm::clamp(_pitch, -89.0f, 89.0f);
 
   UpdateVectors();
+
+  char cameraPos[1024];
+  snprintf(cameraPos, 1024, "[Camera] pos: %f,%f,%f", _position.x, _position.y,
+           _position.z);
+  LogInfo(std::string(cameraPos));
 }
 
 glm::mat4 Camera::GetViewMatrix() const {
