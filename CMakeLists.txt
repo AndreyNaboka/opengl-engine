@@ -67,6 +67,12 @@ target_include_directories(
 # link
 target_link_libraries(${PROJECT_NAME} PRIVATE glad glfw glm::glm stb_image imgui)
 
+target_compile_options(${PROJECT_NAME} PRIVATE 
+    -Wformat=2 
+    -Wformat-security
+    -Werror=format-security 
+)
+
 # os specific
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} PRIVATE opengl32)
