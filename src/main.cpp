@@ -24,7 +24,7 @@ void RenderDebugText(const Camera &cam) {
 
   ImGui::Begin("Debug info");
   ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-  ImGui::TextWrapped(cam.GetDebugStringPos().c_str());
+  ImGui::TextWrapped("%s", cam.GetDebugStringPos().c_str());
   ImGui::End();
 
   ImGui::Render();
