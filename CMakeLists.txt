@@ -31,6 +31,23 @@ file(GLOB_RECURSE SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 # build
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
+# Dear ImGui 
+set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui)
+add_library(imgui STATIC
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+)
+target_include_directories(imgui PUBLIC
+    ${IMGUI_DIR}
+    ${IMGUI_DIR}/backends
+)
+target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD)
+target_link_libraries(imgui PUBLIC glad glfw)
+
 # cgltf
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/third_party/cgltf
@@ -48,7 +65,7 @@ target_include_directories(
                           ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # link
-target_link_libraries(${PROJECT_NAME} PRIVATE glad glfw glm::glm stb_image)
+target_link_libraries(${PROJECT_NAME} PRIVATE glad glfw glm::glm stb_image imgui)
 
 # os specific
 if(WIN32)
@@ -64,7 +81,6 @@ elseif(UNIX)
   target_compile_definitions(${PROJECT_NAME} PRIVATE PLATFORM_LINUX)
 endif()
 
-# Копирование ассетов (ОДНА команда для всех платформ)
 add_custom_command(
   TARGET ${PROJECT_NAME}
   POST_BUILD

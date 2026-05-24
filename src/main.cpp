@@ -10,6 +10,27 @@
 #include "GltfLoader.h"
 #include "Animator.h"
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
+void RenderDebugText(const Camera &cam) {
+  ImGui_ImplOpenGL3_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+  ImGui::NewFrame();
+
+  ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(250, 0), ImGuiCond_FirstUseEver);
+
+  ImGui::Begin("Debug info");
+  ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+  ImGui::TextWrapped(cam.GetDebugStringPos().c_str());
+  ImGui::End();
+
+  ImGui::Render();
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
 int main() {
   Window wnd(1200, 800, std::string("World"));
   InputManager input;
@@ -48,6 +69,13 @@ int main() {
   cmd1.animator = &animator;
   cmd1.model = glm::translate(glm::mat4(1.0f), {-2.0f, 0.0f, 0.0f});
 
+  // ImGui
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGui::GetIO().FontGlobalScale = 0.75f;
+  ImGui_ImplGlfw_InitForOpenGL(wnd.GetNativeHanle(), true);
+  ImGui_ImplOpenGL3_Init("#version 330 core");
+
   wnd.PollEvents();
 
   while (!wnd.ShouldClose()) {
@@ -76,10 +104,16 @@ int main() {
     Renderer::Submit(groundCmd);
     Renderer::EndScene();
 
+    RenderDebugText(camera);
+
     wnd.SwapBuffers();
 
     input.Update();
   }
+
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
 
   return 0;
 }

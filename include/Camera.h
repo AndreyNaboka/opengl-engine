@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <string>
 
 class InputManager;
 
@@ -17,6 +18,7 @@ public:
   const glm::vec3 &GetFront() const { return _front; }
 
   void SetAspect(const float aspect) { _aspect = aspect; }
+  std::string GetDebugStringPos() const;
 
 private:
   glm::vec3 _position, _front, _up, _right, _worldUp;

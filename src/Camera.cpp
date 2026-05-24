@@ -40,11 +40,13 @@ void Camera::Update(const InputManager &input, float deltaTime) {
   _pitch = glm::clamp(_pitch, -89.0f, 89.0f);
 
   UpdateVectors();
+}
 
+std::string Camera::GetDebugStringPos() const {
   char cameraPos[1024];
   snprintf(cameraPos, 1024, "[Camera] pos: %f,%f,%f", _position.x, _position.y,
            _position.z);
-  LogInfo(std::string(cameraPos));
+  return std::string(cameraPos);
 }
 
 glm::mat4 Camera::GetViewMatrix() const {
