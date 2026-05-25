@@ -2,13 +2,15 @@
 #include "TerrainGenerator.h"
 #include "Window.h"
 #include "InputManager.h"
-#include <Camera.h>
-#include <GLFW/glfw3.h>
-#include <Renderer.h>
-#include <memory>
-#include <string>
+#include "Camera.h"
+#include "Renderer.h"
 #include "GltfLoader.h"
 #include "Animator.h"
+
+#include <memory>
+#include <string>
+
+#include <GLFW/glfw3.h>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
