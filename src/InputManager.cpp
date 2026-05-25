@@ -10,7 +10,7 @@ void InputManager::Init(GLFWwindow *wnd) {
   _wnd = wnd;
   glfwSetWindowUserPointer(_wnd, this);
   glfwSetCursorPosCallback(_wnd, MouseCallback);
-//  glfwSetInputMode(_wnd, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  //  glfwSetInputMode(_wnd, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   glfwGetCursorPos(_wnd, &_lastMouseX, &_lastMouseY);
 }
 
