@@ -10,7 +10,7 @@ Texture::Texture(const std::string &path) {
   auto absolutePath = Path::ResolveAssetPath(path);
   unsigned char *data =
       stbi_load(absolutePath.string().c_str(), &_width, &_height, nullptr, 4);
-  LogInfo("[Texture] Try to load texture from: " + absolutePath.string());
+  LogInfo("[Text] load texture: " + path);
   if (!data) {
     LogInfo("[Texture] Failed to load: " + path);
     _width = _height = 1;

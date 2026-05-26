@@ -1,5 +1,6 @@
 #include "Shader.h"
 #include "TerrainGenerator.h"
+#include "Utils/Logger.h"
 #include "Window.h"
 #include "InputManager.h"
 #include "Camera.h"
@@ -57,7 +58,10 @@ int main() {
   float lastTime = 0.0f;
 
   // Model
-  auto modelData = GltfLoader::Load("assets/models/enemy.glb");
+  auto modelData = GltfLoader::Load("assets/models/test_cube.glb");
+  if (!modelData.mesh) {
+    LogInfo("[main] cube model - mesh is null");
+  }
   auto modelShader = std::make_unique<Shader>("assets/shaders/skinned.vert",
                                               "assets/shaders/terrain.frag");
   Animator animator;
@@ -68,8 +72,11 @@ int main() {
   RenderCommand cmd1;
   cmd1.mesh = modelData.mesh.get();
   cmd1.shader = modelShader.get();
-  cmd1.animator = &animator;
-  cmd1.model = glm::translate(glm::mat4(1.0f), {-2.0f, 0.0f, 0.0f});
+  cmd1.animator = nullptr; //&animator;
+  cmd1.model = glm::scale(
+      glm::mat4(1.0f),
+      glm::vec3(
+          0.01f)); // glm::translate(glm::mat4(1.0f), {-2.0f, 0.0f, 0.0f});
 
   // ImGui
   IMGUI_CHECKVERSION();

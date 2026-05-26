@@ -38,7 +38,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   GltfModelData result;
   auto absPath = Path::ResolveAssetPath(assetPath);
 
-  LogInfo("[GltfLoader] try to load model " + absPath.string());
+  LogInfo("[GltfLoader] load model " + assetPath);
 
   cgltf_options opts = {};
   cgltf_data *data = nullptr;
@@ -96,39 +96,58 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   }
 
   size_t vCount = posAcc->count;
-  std::vector<Vertex> vertices(
-      vCount); // Vertex() = default инициализирует кости в -1/0
+  std::vector<Vertex> vertices(vCount);
 
+  // Читаем в промежуточные буферы, затем раскладываем в Vertex
+  std::vector<glm::vec3> positions(vCount);
   cgltf_accessor_read_float(
-      posAcc, 0, reinterpret_cast<float *>(&vertices[0].position), vCount * 3);
-  if (normAcc)
-    cgltf_accessor_read_float(
-        normAcc, 0, reinterpret_cast<float *>(&vertices[0].normal), vCount * 3);
+      posAcc, 0, reinterpret_cast<float *>(positions.data()), vCount * 3);
 
-  if (uvAcc) {
-    std::vector<float> tempUV(vCount * 2);
-    cgltf_accessor_read_float(uvAcc, 0, tempUV.data(), vCount * 2);
-    for (size_t i = 0; i < vCount; ++i)
-      vertices[i].uv = {tempUV[i * 2], tempUV[i * 2 + 1]};
+  std::vector<glm::vec3> normals(vCount,
+                                 glm::vec3(0.0f, 1.0f, 0.0f)); // fallback
+  if (normAcc) {
+    cgltf_accessor_read_float(
+        normAcc, 0, reinterpret_cast<float *>(normals.data()), vCount * 3);
   }
 
+  std::vector<glm::vec2> uvs(vCount, glm::vec2(0.0f));
+  if (uvAcc) {
+    cgltf_accessor_read_float(uvAcc, 0, reinterpret_cast<float *>(uvs.data()),
+                              vCount * 2);
+  }
+
+  // Собираем вершины
+  for (size_t i = 0; i < vCount; ++i) {
+    vertices[i].position = positions[i];
+    vertices[i].normal = normals[i];
+    vertices[i].uv = uvs[i];
+    // boneIds и boneWeights уже инициализированы через Vertex() = default
+  }
+
+  // Скиннинг — через промежуточный буфер для весов
   if (isSkinned) {
     if (!jointsAcc || !weightsAcc)
       LogInfo("[GltfLoader] Skinned mesh missing JOINTS_0/WEIGHTS_0");
 
+    // Веса — через временный буфер
+    std::vector<glm::vec4> weights(vCount);
     cgltf_accessor_read_float(
-        weightsAcc, 0, reinterpret_cast<float *>(&vertices[0].boneWeights[0]),
-        vCount * 4);
+        weightsAcc, 0, reinterpret_cast<float *>(weights.data()), vCount * 4);
 
+    // Joints — через буфер
     cgltf_buffer_view *jView = jointsAcc->buffer_view;
     const uint8_t *jData = static_cast<const uint8_t *>(jView->buffer->data) +
                            jView->offset + jointsAcc->offset;
-    size_t jStride = jView->stride > 0
-                         ? jView->stride
-                         : cgltf_component_size(jointsAcc->component_type) * 4;
+    size_t compSize = cgltf_component_size(jointsAcc->component_type);
+    size_t jStride = (jView->stride > 0) ? jView->stride : (compSize * 4);
     bool isUShort = (jointsAcc->component_type == cgltf_component_type_r_16u);
 
     for (size_t i = 0; i < vCount; ++i) {
+      // Копируем веса
+      for (int j = 0; j < 4; ++j)
+        vertices[i].boneWeights[j] = weights[i][j];
+
+      // Читаем индексы костей
       const uint8_t *ptr = jData + i * jStride;
       if (isUShort) {
         const uint16_t *u16 = reinterpret_cast<const uint16_t *>(ptr);
@@ -140,7 +159,6 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
       }
     }
   }
-
   std::vector<uint32_t> indices;
   if (prim.indices) {
     size_t iCount = prim.indices->count;
