@@ -43,8 +43,8 @@ void Camera::Update(const InputManager &input, float deltaTime) {
 
 std::string Camera::GetDebugStringPos() const {
   char cameraPos[1024];
-  snprintf(cameraPos, 1024, "[Camera] pos: %f,%f,%f", _position.x, _position.y,
-           _position.z);
+  snprintf(cameraPos, 1024, "Cam\n p:[%f,%f,%f]\n f:[%f,%f,%f]", _position.x,
+           _position.y, _position.z, _front.x, _front.y, _front.z);
   return std::string(cameraPos);
 }
 

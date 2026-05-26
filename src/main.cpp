@@ -17,17 +17,19 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include <glm/gtx/string_cast.hpp>
+
 void RenderDebugText(const Camera &cam) {
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 
   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-  ImGui::SetNextWindowSize(ImVec2(250, 0), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize(ImVec2(200, 75), ImGuiCond_FirstUseEver);
 
   ImGui::Begin("Debug info");
   ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-  ImGui::TextWrapped("%s", cam.GetDebugStringPos().c_str());
+  ImGui::Text("%s", cam.GetDebugStringPos().c_str());
   ImGui::End();
 
   ImGui::Render();
@@ -59,11 +61,8 @@ int main() {
 
   // Model
   auto modelData = GltfLoader::Load("assets/models/test_cube.glb");
-  if (!modelData.mesh) {
-    LogInfo("[main] cube model - mesh is null");
-  }
-  auto modelShader = std::make_unique<Shader>("assets/shaders/skinned.vert",
-                                              "assets/shaders/terrain.frag");
+  auto modelShader = std::make_unique<Shader>("assets/shaders/simple.vert",
+                                              "assets/shaders/red_color.frag");
   Animator animator;
   if (!modelData.animations.empty()) {
     animator.SetAnimation(modelData.animations[0].get(),
@@ -72,11 +71,12 @@ int main() {
   RenderCommand cmd1;
   cmd1.mesh = modelData.mesh.get();
   cmd1.shader = modelShader.get();
-  cmd1.animator = nullptr; //&animator;
-  cmd1.model = glm::scale(
-      glm::mat4(1.0f),
-      glm::vec3(
-          0.01f)); // glm::translate(glm::mat4(1.0f), {-2.0f, 0.0f, 0.0f});
+  cmd1.animator = &animator;
+  glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f));
+  glm::mat4 translate =
+      glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, -5.0f));
+  cmd1.model =
+      translate * scale; // Scale применяется первым к вершинам, потом translate
 
   // ImGui
   IMGUI_CHECKVERSION();
@@ -109,11 +109,11 @@ int main() {
     animator.Update(dt);
 
     Renderer::BeginScene(camera);
-    Renderer::Submit(cmd1);
     Renderer::Submit(groundCmd);
+    Renderer::Submit(cmd1);
     Renderer::EndScene();
 
-    RenderDebugText(camera);
+    //    RenderDebugText(camera);
 
     wnd.SwapBuffers();
 

@@ -73,6 +73,14 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     -Werror=format-security 
 )
 
+# sanitizer
+#target_compile_options(${PROJECT_NAME} PRIVATE
+#    $<$<CONFIG:Debug>:-fsanitize=address -fno-omit-frame-pointer -g>
+#)
+#target_link_options(${PROJECT_NAME} PRIVATE
+#    $<$<CONFIG:Debug>:-fsanitize=address>
+#)
+
 # os specific
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} PRIVATE opengl32)

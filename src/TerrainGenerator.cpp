@@ -1,8 +1,9 @@
 #include "TerrainGenerator.h"
+#include "Mesh.h"
 
 std::unique_ptr<Mesh> GenerateGrid(float width, float depth, unsigned int resX,
                                    unsigned int resZ, float uvScale) {
-  std::vector<Vertex> vertices;
+  std::vector<StaticVertex> vertices;
   std::vector<uint32_t> indices;
   vertices.reserve((resX + 1) * (resZ + 1));
 

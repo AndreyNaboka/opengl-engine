@@ -7,6 +7,9 @@
 #include <cstdint>
 #include <cstring>
 
+// TO DO remove
+#include <glad/gl.h>
+
 static const char *GltfResultToString(cgltf_result res) {
   switch (res) {
   case cgltf_result_success:
@@ -96,7 +99,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   }
 
   size_t vCount = posAcc->count;
-  std::vector<Vertex> vertices(vCount);
+  std::vector<SkinnedVertex> vertices(vCount);
 
   // Читаем в промежуточные буферы, затем раскладываем в Vertex
   std::vector<glm::vec3> positions(vCount);
@@ -115,13 +118,15 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     cgltf_accessor_read_float(uvAcc, 0, reinterpret_cast<float *>(uvs.data()),
                               vCount * 2);
   }
-
-  // Собираем вершины
   for (size_t i = 0; i < vCount; ++i) {
     vertices[i].position = positions[i];
     vertices[i].normal = normals[i];
     vertices[i].uv = uvs[i];
-    // boneIds и boneWeights уже инициализированы через Vertex() = default
+    // boneIds и boneWeights инициализируются через = default или явно
+    for (int j = 0; j < 4; ++j) {
+      vertices[i].boneIds[j] = -1;
+      vertices[i].boneWeights[j] = 0.0f;
+    }
   }
 
   // Скиннинг — через промежуточный буфер для весов
@@ -160,16 +165,50 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     }
   }
   std::vector<uint32_t> indices;
-  if (prim.indices) {
+  // Чтение индексов
+  if (prim.indices && prim.indices->count > 0) {
     size_t iCount = prim.indices->count;
-    indices.resize(iCount);
-    cgltf_accessor_read_uint(prim.indices, 0, indices.data(), iCount);
+
+    if (prim.indices->component_type == cgltf_component_type_r_16u) {
+      std::vector<uint16_t> indices16(iCount);
+      for (size_t i = 0; i < iCount; ++i) {
+        cgltf_uint idx;
+        cgltf_accessor_read_uint(prim.indices, i, &idx, 1);
+        indices16[i] = static_cast<uint16_t>(idx);
+      }
+      result.mesh = std::make_shared<Mesh>(vertices, indices16);
+      std::cout << "[GltfLoader] Loaded " << iCount << " uint16 indices\n";
+    } else {
+      std::vector<uint32_t> indices32(iCount);
+      for (size_t i = 0; i < iCount; ++i) {
+        cgltf_uint idx;
+        cgltf_accessor_read_uint(prim.indices, i, &idx, 1);
+        indices32[i] = static_cast<uint32_t>(idx);
+      }
+      result.mesh = std::make_shared<Mesh>(vertices, indices32);
+      std::cout << "[GltfLoader] Loaded " << iCount << " uint32 indices\n";
+    }
   } else {
-    indices.resize(vCount);
+    std::vector<uint32_t> indices(vCount);
     std::iota(indices.begin(), indices.end(), 0);
+    result.mesh = std::make_shared<Mesh>(vertices, indices);
+    std::cout << "[GltfLoader] No indices in glTF, generated " << vCount
+              << " sequential indices\n";
+  }
+  // TO DO remove
+
+  if (glIsVertexArray(result.mesh->GetVAO()) == GL_FALSE) {
+    LogInfo("[GltfLoader] VAO invalid immediately after creation!");
   }
 
-  result.mesh = std::make_shared<Mesh>(vertices, indices);
+  GLenum err = glGetError();
+  if (err != GL_NO_ERROR) {
+    LogInfo("[GltfLoader] ogl err after mesh creation: " + std::to_string(err));
+  }
+  LogInfo("[GltfLoader] cube VAO:" + std::to_string(result.mesh->GetVAO()));
+  LogInfo("[GltfLoader] cube index count:" +
+          std::to_string(result.mesh->GetIndexCount()));
+  /////////////////////
   result.isSkinned = isSkinned;
 
   if (isSkinned && activeSkin) {

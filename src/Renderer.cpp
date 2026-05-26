@@ -21,7 +21,7 @@ void Renderer::BeginScene(const Camera &camera) {
 void Renderer::Submit(const RenderCommand &cmd) { _cmdQueue.push_back(cmd); }
 
 void Renderer::EndScene() {
-  glClearColor(0.1f, 0.15f, 0.1f, 1.0f);
+  glClearColor(0.0f, 0.15f, 0.1f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   for (const auto &cmd : _cmdQueue) {
@@ -46,8 +46,12 @@ void Renderer::EndScene() {
                              glm::value_ptr(bones[0]));
         }
       }
+    } else {
+      cmd.shader->SetUniformInt("u_Skinned", 0);
     }
+    glDisable(GL_CULL_FACE);
     cmd.mesh->Draw();
+    glEnable(GL_CULL_FACE);
   }
   _cmdQueue.clear();
 }
