@@ -2,12 +2,9 @@
 #include "Utils/PathUtils.h"
 #include "Utils/Logger.h"
 #include <cgltf.h>
-#include <stdexcept>
-#include <numeric>
 #include <cstdint>
 #include <cstring>
 #include <glm/gtc/type_ptr.hpp>
-
 // TO DO remove
 #include <glad/gl.h>
 
