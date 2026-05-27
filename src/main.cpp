@@ -114,7 +114,7 @@ int main() {
     Renderer::Submit(cmd1);
     Renderer::EndScene();
 
-    //    RenderDebugText(camera);
+    RenderDebugText(camera);
 
     wnd.SwapBuffers();
 
