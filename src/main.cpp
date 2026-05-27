@@ -62,7 +62,7 @@ int main() {
 
   // Model
   auto modelData = GltfLoader::Load("assets/models/test_cube.glb");
-  auto modelShader = std::make_unique<Shader>("assets/shaders/simple.vert",
+  auto modelShader = std::make_unique<Shader>("assets/shaders/skinned.vert",
                                               "assets/shaders/red_color.frag");
   Animator animator;
   if (!modelData.animations.empty()) {

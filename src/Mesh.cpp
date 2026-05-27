@@ -4,18 +4,18 @@
 
 Mesh::Mesh(const std::vector<StaticVertex> &vertices,
            const std::vector<uint32_t> &indices)
-    : m_Count(static_cast<unsigned int>(indices.size())),
-      m_IndexType(GL_UNSIGNED_INT) {
+    : _count(static_cast<unsigned int>(indices.size())),
+      _indexType(GL_UNSIGNED_INT) {
 
-  glGenVertexArrays(1, &m_VAO);
-  glGenBuffers(1, &m_VBO);
-  glGenBuffers(1, &m_EBO);
+  glGenVertexArrays(1, &_VAO);
+  glGenBuffers(1, &_VBO);
+  glGenBuffers(1, &_EBO);
 
-  glBindVertexArray(m_VAO);
-  glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+  glBindVertexArray(_VAO);
+  glBindBuffer(GL_ARRAY_BUFFER, _VBO);
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(StaticVertex),
                vertices.data(), GL_STATIC_DRAW);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _EBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t),
                indices.data(), GL_STATIC_DRAW);
 
@@ -36,18 +36,18 @@ Mesh::Mesh(const std::vector<StaticVertex> &vertices,
 // Скинненный меш: 5 атрибутов, stride = 64 байта
 Mesh::Mesh(const std::vector<SkinnedVertex> &vertices,
            const std::vector<uint16_t> &indices)
-    : m_Count(static_cast<unsigned int>(indices.size())),
-      m_IndexType(GL_UNSIGNED_SHORT) {
+    : _count(static_cast<unsigned int>(indices.size())),
+      _indexType(GL_UNSIGNED_SHORT) {
 
-  glGenVertexArrays(1, &m_VAO);
-  glGenBuffers(1, &m_VBO);
-  glGenBuffers(1, &m_EBO);
+  glGenVertexArrays(1, &_VAO);
+  glGenBuffers(1, &_VBO);
+  glGenBuffers(1, &_EBO);
 
-  glBindVertexArray(m_VAO);
-  glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+  glBindVertexArray(_VAO);
+  glBindBuffer(GL_ARRAY_BUFFER, _VBO);
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(SkinnedVertex),
                vertices.data(), GL_STATIC_DRAW);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _EBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint16_t),
                indices.data(), GL_STATIC_DRAW);
 
@@ -73,17 +73,17 @@ Mesh::Mesh(const std::vector<SkinnedVertex> &vertices,
 
 Mesh::Mesh(const std::vector<SkinnedVertex> &vertices,
            const std::vector<uint32_t> &indices)
-    : m_Count(static_cast<unsigned int>(indices.size())),
-      m_IndexType(GL_UNSIGNED_INT) {
+    : _count(static_cast<unsigned int>(indices.size())),
+      _indexType(GL_UNSIGNED_INT) {
   // Аналогично uint16 версии, но с GL_UNSIGNED_INT
-  glGenVertexArrays(1, &m_VAO);
-  glGenBuffers(1, &m_VBO);
-  glGenBuffers(1, &m_EBO);
-  glBindVertexArray(m_VAO);
-  glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+  glGenVertexArrays(1, &_VAO);
+  glGenBuffers(1, &_VBO);
+  glGenBuffers(1, &_EBO);
+  glBindVertexArray(_VAO);
+  glBindBuffer(GL_ARRAY_BUFFER, _VBO);
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(SkinnedVertex),
                vertices.data(), GL_STATIC_DRAW);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _EBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t),
                indices.data(), GL_STATIC_DRAW);
   constexpr GLsizei stride = sizeof(SkinnedVertex);
@@ -106,13 +106,13 @@ Mesh::Mesh(const std::vector<SkinnedVertex> &vertices,
 }
 
 Mesh::~Mesh() {
-  glDeleteVertexArrays(1, &m_VAO);
-  glDeleteBuffers(1, &m_VBO);
-  glDeleteBuffers(1, &m_EBO);
+  glDeleteVertexArrays(1, &_VAO);
+  glDeleteBuffers(1, &_VBO);
+  glDeleteBuffers(1, &_EBO);
 }
 
 void Mesh::Draw() const {
-  glBindVertexArray(m_VAO);
-  glDrawElements(GL_TRIANGLES, m_Count, m_IndexType, nullptr);
+  glBindVertexArray(_VAO);
+  glDrawElements(GL_TRIANGLES, _count, _indexType, nullptr);
   glBindVertexArray(0);
 }

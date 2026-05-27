@@ -33,10 +33,11 @@ public:
   ~Mesh();
   void Draw() const;
 
-  unsigned int GetVAO() const { return m_VAO; }
-  unsigned int GetIndexCount() const { return m_Count; }
+  unsigned int GetVAO() const { return _VAO; }
+  unsigned int GetIndexCount() const { return _count; }
+  unsigned int GetVBO() const { return _VBO; }
 
 private:
-  unsigned int m_VAO, m_VBO, m_EBO, m_Count;
-  GLenum m_IndexType;
+  unsigned int _VAO, _VBO, _EBO, _count;
+  GLenum _indexType;
 };
