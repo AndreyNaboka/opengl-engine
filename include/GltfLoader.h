@@ -30,6 +30,6 @@ class GltfLoader {
 public:
   // Статический метод загрузки. Возвращает shared-данные модели.
   static GltfModelData Load(const std::string &assetPath);
-  //static std::shared_ptr<Texture>
-  //LoadTextureFromCgltf(const cgltf_image *image, const std::string &basePath);
+  static std::shared_ptr<Texture>
+  LoadTextureFromCgltf(const cgltf_image *image, const std::string &basePath);
 };

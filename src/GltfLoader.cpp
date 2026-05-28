@@ -1,11 +1,12 @@
 #include "GltfLoader.h"
 #include "Utils/PathUtils.h"
 #include "Utils/Logger.h"
+#include <cgltf.h>
 #include <cstdint>
 #include <cstring>
 #include <glm/gtc/type_ptr.hpp>
-// TO DO remove
 #include <glad/gl.h>
+#include <memory>
 
 static const char *GltfResultToString(cgltf_result res) {
   switch (res) {
@@ -32,6 +33,16 @@ static const char *GltfResultToString(cgltf_result res) {
   default:
     return "Unknown error";
   }
+}
+
+static std::shared_ptr<Texture>
+LoadTextureFromCgltf(const cgltf_image *image, const std::string &basePath) {
+  if (!image)
+    return nullptr;
+
+  std::shared_ptr<Texture> texture = nullptr;
+
+  return texture;
 }
 
 GltfModelData GltfLoader::Load(const std::string &assetPath) {
