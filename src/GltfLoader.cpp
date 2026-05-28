@@ -1,7 +1,6 @@
 #include "GltfLoader.h"
 #include "Utils/PathUtils.h"
 #include "Utils/Logger.h"
-#include <cgltf.h>
 #include <cstdint>
 #include <cstring>
 #include <glm/gtc/type_ptr.hpp>
