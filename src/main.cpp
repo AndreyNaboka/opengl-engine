@@ -61,9 +61,9 @@ int main() {
   float lastTime = 0.0f;
 
   // Model
-  auto modelData = GltfLoader::Load("assets/models/test_cube.glb");
+  auto modelData = GltfLoader::Load("assets/models/enemy.glb");
   auto modelShader = std::make_unique<Shader>("assets/shaders/skinned.vert",
-                                              "assets/shaders/red_color.frag");
+                                              "assets/shaders/terrain.frag");
   Animator animator;
   if (!modelData.animations.empty()) {
     animator.SetAnimation(modelData.animations[0].get(),
@@ -73,7 +73,7 @@ int main() {
   cmd1.mesh = modelData.mesh.get();
   cmd1.shader = modelShader.get();
   cmd1.animator = &animator;
-  glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f));
+  glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(6.0f));
   glm::mat4 translate =
       glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, -5.0f));
   cmd1.model =
