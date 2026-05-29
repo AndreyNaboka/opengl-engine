@@ -49,8 +49,8 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   GltfModelData result;
   auto absPath = Path::ResolveAssetPath(assetPath);
 
-  LogInfo("[GltfLoader] ========== START LOADING ==========");
-  LogInfo("[GltfLoader] File: " + absPath.string());
+  LOG_DEBUG("[GltfLoader] ========== START LOADING ==========");
+  LOG_DEBUG("[GltfLoader] File: " + absPath.string());
 
   cgltf_options opts = {};
   cgltf_data *data = nullptr;
@@ -79,7 +79,6 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   const cgltf_mesh *targetMesh = &data->meshes[0];
   const cgltf_primitive &prim = targetMesh->primitives[0];
 
-  // Находим атрибуты
   const cgltf_accessor *posAcc = nullptr;
   const cgltf_accessor *normAcc = nullptr;
   const cgltf_accessor *uvAcc = nullptr;
@@ -101,7 +100,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   }
 
   size_t vCount = posAcc->count;
-  LogInfo("[GltfLoader] Vertex count: " + std::to_string(vCount));
+  LOG_DEBUG("[GltfLoader] Vertex count: " + std::to_string(vCount));
 
   // Прямое чтение позиций из буфера
   std::vector<glm::vec3> positions(vCount);
@@ -112,14 +111,14 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     size_t stride = posAcc->buffer_view->stride ? posAcc->buffer_view->stride
                                                 : sizeof(float) * 3;
 
-    LogInfo("[GltfLoader] Reading positions: offset=" + std::to_string(offset) +
+    LOG_DEBUG("[GltfLoader] Reading positions: offset=" + std::to_string(offset) +
             ", stride=" + std::to_string(stride));
 
     for (size_t i = 0; i < vCount; ++i) {
       const float *pos =
           reinterpret_cast<const float *>(bufferData + offset + i * stride);
       positions[i] = glm::vec3(pos[0], pos[1], pos[2]);
-      LogInfo("[GltfLoader] Vertex " + std::to_string(i) + " position: (" +
+      LOG_DEBUG("[GltfLoader] Vertex " + std::to_string(i) + " position: (" +
               std::to_string(positions[i].x) + ", " +
               std::to_string(positions[i].y) + ", " +
               std::to_string(positions[i].z) + ")");
@@ -139,7 +138,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     size_t stride = normAcc->buffer_view->stride ? normAcc->buffer_view->stride
                                                  : sizeof(float) * 3;
 
-    LogInfo("[GltfLoader] Reading normals: offset=" + std::to_string(offset) +
+    LOG_DEBUG("[GltfLoader] Reading normals: offset=" + std::to_string(offset) +
             ", stride=" + std::to_string(stride));
 
     for (size_t i = 0; i < vCount; ++i) {
@@ -147,7 +146,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
           reinterpret_cast<const float *>(bufferData + offset + i * stride);
       normals[i] = glm::vec3(norm[0], norm[1], norm[2]);
       if (i < 3) {
-        LogInfo("[GltfLoader] Normal " + std::to_string(i) + ": (" +
+        LOG_DEBUG("[GltfLoader] Normal " + std::to_string(i) + ": (" +
                 std::to_string(normals[i].x) + ", " +
                 std::to_string(normals[i].y) + ", " +
                 std::to_string(normals[i].z) + ")");
@@ -171,7 +170,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
               ? idxAcc->buffer_view->stride
               : (idxAcc->component_type == cgltf_component_type_r_16u ? 2 : 4);
 
-      LogInfo("[GltfLoader] Reading indices: offset=" + std::to_string(offset) +
+      LOG_DEBUG("[GltfLoader] Reading indices: offset=" + std::to_string(offset) +
               ", stride=" + std::to_string(stride));
 
       if (idxAcc->component_type == cgltf_component_type_r_16u) {
@@ -190,7 +189,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
 
       LogInfo("[GltfLoader] Indices count: " + std::to_string(iCount));
       for (size_t i = 0; i < std::min(iCount, (size_t)12); ++i) {
-        LogInfo("[GltfLoader] Index " + std::to_string(i) + ": " +
+        LOG_DEBUG("[GltfLoader] Index " + std::to_string(i) + ": " +
                 std::to_string(indices[i]));
       }
     }
@@ -209,7 +208,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   result.isSkinned = false;
 
   cgltf_free(data);
-  LogInfo("[GltfLoader] ========== LOADING COMPLETE ==========");
+  LOG_DEBUG("[GltfLoader] ========== LOADING COMPLETE ==========");
 
   return result;
 }

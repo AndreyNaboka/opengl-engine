@@ -1,6 +1,5 @@
 #include "Shader.h"
 #include "TerrainGenerator.h"
-#include "Utils/Logger.h"
 #include "Window.h"
 #include "InputManager.h"
 #include "Camera.h"
@@ -26,7 +25,7 @@ void RenderDebugText(const Camera &cam) {
   ImGui::NewFrame();
 
   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-  ImGui::SetNextWindowSize(ImVec2(200, 75), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiCond_FirstUseEver);
 
   ImGui::Begin("Debug info");
   ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);

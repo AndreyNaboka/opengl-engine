@@ -31,6 +31,11 @@ file(GLOB_RECURSE SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 # build
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    $<$<CONFIG:Debug>:ENGINE_DEBUG>
+    $<$<CONFIG:RelWithDebInfo>:ENGINE_DEBUG>
+)
+
 # Dear ImGui 
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui)
 add_library(imgui STATIC
