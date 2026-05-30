@@ -41,6 +41,19 @@ LoadTextureFromCgltf(const cgltf_image *image, const std::string &basePath) {
     return nullptr;
 
   std::shared_ptr<Texture> texture = nullptr;
+  // inbound texture
+  if (image->buffer_view) {
+    const cgltf_buffer_view *view = image->buffer_view;
+    const cgltf_buffer *buffer = view->buffer;
+    if (buffer && buffer->data) {
+      const uint8_t *data =
+          static_cast<const uint8_t *>(buffer->data) + view->offset;
+      size_t size = view->size;
+      LogInfo("[GltfLoader] Found embedded texture, size: " +
+              std::to_string(size) + " bytes, mime_type: " +
+              (image->mime_type ? image->mime_type : "unknown"));
+    }
+  }
 
   return texture;
 }
@@ -111,17 +124,17 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     size_t stride = posAcc->buffer_view->stride ? posAcc->buffer_view->stride
                                                 : sizeof(float) * 3;
 
-    LOG_DEBUG("[GltfLoader] Reading positions: offset=" + std::to_string(offset) +
-            ", stride=" + std::to_string(stride));
+    LOG_DEBUG("[GltfLoader] Reading positions: offset=" +
+              std::to_string(offset) + ", stride=" + std::to_string(stride));
 
     for (size_t i = 0; i < vCount; ++i) {
       const float *pos =
           reinterpret_cast<const float *>(bufferData + offset + i * stride);
       positions[i] = glm::vec3(pos[0], pos[1], pos[2]);
       LOG_DEBUG("[GltfLoader] Vertex " + std::to_string(i) + " position: (" +
-              std::to_string(positions[i].x) + ", " +
-              std::to_string(positions[i].y) + ", " +
-              std::to_string(positions[i].z) + ")");
+                std::to_string(positions[i].x) + ", " +
+                std::to_string(positions[i].y) + ", " +
+                std::to_string(positions[i].z) + ")");
     }
   } else {
     LogInfo("[GltfLoader] ERROR: No buffer data for positions!");
@@ -139,7 +152,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
                                                  : sizeof(float) * 3;
 
     LOG_DEBUG("[GltfLoader] Reading normals: offset=" + std::to_string(offset) +
-            ", stride=" + std::to_string(stride));
+              ", stride=" + std::to_string(stride));
 
     for (size_t i = 0; i < vCount; ++i) {
       const float *norm =
@@ -147,9 +160,9 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
       normals[i] = glm::vec3(norm[0], norm[1], norm[2]);
       if (i < 3) {
         LOG_DEBUG("[GltfLoader] Normal " + std::to_string(i) + ": (" +
-                std::to_string(normals[i].x) + ", " +
-                std::to_string(normals[i].y) + ", " +
-                std::to_string(normals[i].z) + ")");
+                  std::to_string(normals[i].x) + ", " +
+                  std::to_string(normals[i].y) + ", " +
+                  std::to_string(normals[i].z) + ")");
       }
     }
   }
@@ -170,8 +183,8 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
               ? idxAcc->buffer_view->stride
               : (idxAcc->component_type == cgltf_component_type_r_16u ? 2 : 4);
 
-      LOG_DEBUG("[GltfLoader] Reading indices: offset=" + std::to_string(offset) +
-              ", stride=" + std::to_string(stride));
+      LOG_DEBUG("[GltfLoader] Reading indices: offset=" +
+                std::to_string(offset) + ", stride=" + std::to_string(stride));
 
       if (idxAcc->component_type == cgltf_component_type_r_16u) {
         for (size_t i = 0; i < iCount; ++i) {
@@ -190,7 +203,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
       LogInfo("[GltfLoader] Indices count: " + std::to_string(iCount));
       for (size_t i = 0; i < std::min(iCount, (size_t)12); ++i) {
         LOG_DEBUG("[GltfLoader] Index " + std::to_string(i) + ": " +
-                std::to_string(indices[i]));
+                  std::to_string(indices[i]));
       }
     }
   }
