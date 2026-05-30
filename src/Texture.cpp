@@ -5,7 +5,7 @@
 #include "Utils/Logger.h"
 #include "Utils/PathUtils.h"
 
-Texture::Texture(const uint8_t *data, size_t size) {
+Texture::Texture(const uint8_t *data, size_t size, const char *mime_type) {
   glGenTextures(1, &_ID);
   glBindTexture(GL_TEXTURE_2D, _ID);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

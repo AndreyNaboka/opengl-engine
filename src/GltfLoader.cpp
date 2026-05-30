@@ -52,9 +52,23 @@ LoadTextureFromCgltf(const cgltf_image *image, const std::string &basePath) {
       LogInfo("[GltfLoader] Found embedded texture, size: " +
               std::to_string(size) + " bytes, mime_type: " +
               (image->mime_type ? image->mime_type : "unknown"));
+      texture = std::make_shared<Texture>(data, size, image->mime_type);
+    }
+  } else if (image->uri) {
+    if (strncmp(image->uri, "data:", 5) == 0) {
+      LogInfo("[GltfLoader] Data URI texture found (base64), skipping for now");
+      // TODO Для base64 потребуется дополнительная обработка
+    } else {
+      std::string texturePath = basePath + "/" + image->uri;
+      try {
+        texture = std::make_shared<Texture>(texturePath);
+        LogInfo("[GltfLoader] Loaded external texture: " + texturePath);
+      } catch (const std::exception &e) {
+        LogInfo("[GltfLoader] Failed to load texture: " + texturePath +
+                ", error: " + e.what());
+      }
     }
   }
-
   return texture;
 }
 
