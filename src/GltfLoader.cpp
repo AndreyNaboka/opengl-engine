@@ -72,6 +72,29 @@ LoadTextureFromCgltf(const cgltf_image *image, const std::string &basePath) {
   return texture;
 }
 
+GltfModelData::Material LoadMaterial(const cgltf_material *material,
+                                     const std::string &basePath) {
+  GltfModelData::Material result;
+  if (!material)
+    return result;
+  // Get main texture
+  if (material->pbr_metallic_roughness.base_color_texture.texture) {
+    const cgltf_texture *tex =
+        material->pbr_metallic_roughness.base_color_texture.texture;
+    if (tex->image) {
+      result.albedoTexture = LoadTextureFromCgltf(tex->image, basePath);
+      LogInfo("[GltfLoader] Loaded albedo texture for material: " +
+              std::string(material->name ? material->name : "unnamed"));
+    }
+  }
+  // Get base color
+  const float *color = material->pbr_metallic_roughness.base_color_factor;
+  result.baseColor = glm::vec3(color[0], color[1], color[2]);
+  result.mettalic = material->pbr_metallic_roughness.metallic_factor;
+  result.roughness = material->pbr_metallic_roughness.roughness_factor;
+  return result;
+}
+
 GltfModelData GltfLoader::Load(const std::string &assetPath) {
   GltfModelData result;
   auto absPath = Path::ResolveAssetPath(assetPath);

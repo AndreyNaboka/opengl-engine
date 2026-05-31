@@ -32,4 +32,6 @@ public:
   static GltfModelData Load(const std::string &assetPath);
   static std::shared_ptr<Texture>
   LoadTextureFromCgltf(const cgltf_image *image, const std::string &basePath);
+  static GltfModelData::Material LoadMaterial(const cgltf_material *material,
+                                              const std::string &basePath);
 };
