@@ -13,7 +13,7 @@ struct GltfModelData {
   struct Material {
     std::shared_ptr<Texture> albedoTexture;
     glm::vec3 baseColor = glm::vec3(1.0f);
-    float mettalic = 0.0f;
+    float metallic = 0.0f;
     float roughness = 0.f;
   };
 
@@ -28,7 +28,6 @@ struct GltfModelData {
 
 class GltfLoader {
 public:
-  // Статический метод загрузки. Возвращает shared-данные модели.
   static GltfModelData Load(const std::string &assetPath);
   static std::shared_ptr<Texture>
   LoadTextureFromCgltf(const cgltf_image *image, const std::string &basePath);

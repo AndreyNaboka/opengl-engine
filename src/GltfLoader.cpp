@@ -35,8 +35,8 @@ static const char *GltfResultToString(cgltf_result res) {
   }
 }
 
-static std::shared_ptr<Texture>
-LoadTextureFromCgltf(const cgltf_image *image, const std::string &basePath) {
+std::shared_ptr<Texture> GltfLoader::LoadTextureFromCgltf(const cgltf_image *image,
+                                              const std::string &basePath) {
   if (!image)
     return nullptr;
 
@@ -72,7 +72,7 @@ LoadTextureFromCgltf(const cgltf_image *image, const std::string &basePath) {
   return texture;
 }
 
-GltfModelData::Material LoadMaterial(const cgltf_material *material,
+GltfModelData::Material GltfLoader::LoadMaterial(const cgltf_material *material,
                                      const std::string &basePath) {
   GltfModelData::Material result;
   if (!material)
@@ -90,7 +90,7 @@ GltfModelData::Material LoadMaterial(const cgltf_material *material,
   // Get base color
   const float *color = material->pbr_metallic_roughness.base_color_factor;
   result.baseColor = glm::vec3(color[0], color[1], color[2]);
-  result.mettalic = material->pbr_metallic_roughness.metallic_factor;
+  result.metallic = material->pbr_metallic_roughness.metallic_factor;
   result.roughness = material->pbr_metallic_roughness.roughness_factor;
   return result;
 }
@@ -124,6 +124,17 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     LogInfo("[GltfLoader] No meshes found");
     cgltf_free(data);
     return result;
+  }
+
+  // Load material
+  const std::string basePath = absPath.parent_path().string();
+  LogInfo("[GltfLoader] Loading " + std::to_string(data->materials_count) +
+          " materials");
+  result.materials.reserve(data->materials_count);
+  for (size_t i = 0; i < data->materials_count; ++i) {
+    GltfModelData::Material material =
+        LoadMaterial(&data->materials[i], basePath);
+    result.materials.push_back(material);
   }
 
   const cgltf_mesh *targetMesh = &data->meshes[0];
