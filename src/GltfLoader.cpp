@@ -35,8 +35,9 @@ static const char *GltfResultToString(cgltf_result res) {
   }
 }
 
-std::shared_ptr<Texture> GltfLoader::LoadTextureFromCgltf(const cgltf_image *image,
-                                              const std::string &basePath) {
+std::shared_ptr<Texture>
+GltfLoader::LoadTextureFromCgltf(const cgltf_image *image,
+                                 const std::string &basePath) {
   if (!image)
     return nullptr;
 
@@ -73,7 +74,7 @@ std::shared_ptr<Texture> GltfLoader::LoadTextureFromCgltf(const cgltf_image *ima
 }
 
 GltfModelData::Material GltfLoader::LoadMaterial(const cgltf_material *material,
-                                     const std::string &basePath) {
+                                                 const std::string &basePath) {
   GltfModelData::Material result;
   if (!material)
     return result;
@@ -139,6 +140,17 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
 
   const cgltf_mesh *targetMesh = &data->meshes[0];
   const cgltf_primitive &prim = targetMesh->primitives[0];
+
+  if (prim.material) {
+    for (size_t i = 0; i < data->materials_count; ++i) {
+      if (&data->materials[i] == prim.material) {
+        result.defaultMaterialIndex = static_cast<int>(i);
+        LogInfo("[GltfLoader] Primitive uses material index: " +
+                std::to_string(i));
+        break;
+      }
+    }
+  }
 
   const cgltf_accessor *posAcc = nullptr;
   const cgltf_accessor *normAcc = nullptr;
@@ -215,6 +227,23 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     }
   }
 
+  // Чтение UV координат
+  std::vector<glm::vec2> uvs(vCount, glm::vec2(0.0f));
+  if (uvAcc && uvAcc->buffer_view && uvAcc->buffer_view->buffer->data) {
+    const uint8_t *bufferData =
+        static_cast<const uint8_t *>(uvAcc->buffer_view->buffer->data);
+    size_t offset = uvAcc->offset + uvAcc->buffer_view->offset;
+    size_t stride = uvAcc->buffer_view->stride ? uvAcc->buffer_view->stride
+                                               : sizeof(float) * 2;
+
+    LogInfo("[GltfLoader] Reading UVs");
+    for (size_t i = 0; i < vCount; ++i) {
+      const float *uv =
+          reinterpret_cast<const float *>(bufferData + offset + i * stride);
+      uvs[i] = glm::vec2(uv[0], uv[1]);
+    }
+  }
+
   // Чтение индексов
   std::vector<uint32_t> indices;
   if (prim.indices && prim.indices->count > 0) {
@@ -261,7 +290,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   for (size_t i = 0; i < vCount; ++i) {
     staticVertices[i].position = positions[i];
     staticVertices[i].normal = normals[i];
-    staticVertices[i].uv = glm::vec2(0.0f); // UV пока не используем
+    staticVertices[i].uv = uvs[i];
   }
 
   // Создаем меш

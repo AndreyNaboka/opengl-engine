@@ -6,6 +6,7 @@
 #include "Renderer.h"
 #include "GltfLoader.h"
 #include "Animator.h"
+#include "Utils/Logger.h"
 
 #include <memory>
 #include <string>
@@ -72,6 +73,18 @@ int main() {
   cmd1.mesh = modelData.mesh.get();
   cmd1.shader = modelShader.get();
   cmd1.animator = &animator;
+  if (modelData.defaultMaterialIndex >= 0 &&
+      modelData.defaultMaterialIndex < modelData.materials.size()) {
+    cmd1.texture =
+        modelData.materials[modelData.defaultMaterialIndex].albedoTexture.get();
+    cmd1.slot = 0;
+
+    if (cmd1.texture) {
+      LogInfo("Model has texture loaded");
+    } else {
+      LogInfo("Model has no texture, using color only");
+    }
+  }
   glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(6.0f));
   glm::mat4 translate =
       glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, -5.0f));

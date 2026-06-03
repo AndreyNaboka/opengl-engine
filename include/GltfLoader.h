@@ -23,7 +23,7 @@ struct GltfModelData {
   std::unordered_map<std::string, size_t> boneNameToIndex;
   bool isSkinned = false;
   std::vector<Material> materials;
-  int defaultMaterialsIndex = -1;
+  int defaultMaterialIndex = -1;
 };
 
 class GltfLoader {
