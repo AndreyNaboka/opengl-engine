@@ -26,7 +26,7 @@ public:
 
   // Для скинненной геометрии
   Mesh(const std::vector<SkinnedVertex> &vertices,
-       const std::vector<uint16_t> &indices);
+     const std::vector<uint16_t> &indices);
   Mesh(const std::vector<SkinnedVertex> &vertices,
        const std::vector<uint32_t> &indices);
 

@@ -82,7 +82,7 @@ Mesh::Mesh(const std::vector<SkinnedVertex> &vertices,
   glBindVertexArray(_VAO);
   glBindBuffer(GL_ARRAY_BUFFER, _VBO);
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(SkinnedVertex),
-               vertices.data(), GL_STATIC_DRAW);
+               vertices.data(), GL_STREAM_DRAW);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _EBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t),
                indices.data(), GL_STATIC_DRAW);

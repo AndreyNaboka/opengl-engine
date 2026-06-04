@@ -21,6 +21,8 @@ struct GltfModelData {
   std::vector<std::shared_ptr<Animation>> animations;
   std::vector<glm::mat4> inverseBindMatrices;
   std::unordered_map<std::string, size_t> boneNameToIndex;
+  std::vector<int> boneParents;
+  std::vector<std::string> boneNames;
   bool isSkinned = false;
   std::vector<Material> materials;
   int defaultMaterialIndex = -1;

@@ -1,6 +1,9 @@
-#include <Renderer.h>
+#include "Renderer.h"
+#include "Utils/Logger.h"
 #include <glad/gl.h>
 #include <glm/gtc/type_ptr.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 
 Renderer::SceneData Renderer::_sceneData;
 std::vector<RenderCommand> Renderer::_cmdQueue;
@@ -36,19 +39,20 @@ void Renderer::EndScene() {
       cmd.shader->SetUniformInt("u_Texture", cmd.slot);
     }
 
-    if (cmd.animator && cmd.animator->IsPlaying()) {
+    if (cmd.animator) {
       cmd.shader->SetUniformInt("u_Skinned", 1);
       const auto &bones = cmd.animator->GetBoneMatrices();
       if (!bones.empty()) {
         int loc = cmd.shader->GetUniformLocation("u_BoneMatrices");
         if (loc != -1) {
-          glUniformMatrix4fv(loc, static_cast<GLsizei>(bones.size()), GL_FALSE,
+          glUniformMatrix4fv(loc, (GLsizei)bones.size(), GL_FALSE,
                              glm::value_ptr(bones[0]));
         }
       }
     } else {
       cmd.shader->SetUniformInt("u_Skinned", 0);
     }
+
     glDisable(GL_CULL_FACE);
     cmd.mesh->Draw();
     glEnable(GL_CULL_FACE);

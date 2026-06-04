@@ -4,6 +4,7 @@
 #include <cgltf.h>
 #include <cstdint>
 #include <cstring>
+#include <algorithm>
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/gl.h>
 #include <memory>
@@ -152,6 +153,134 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     }
   }
 
+  // Load skeleton
+  cgltf_skin *activeSkin = nullptr;
+  for (size_t n = 0; n < data->nodes_count; ++n) {
+    if (data->nodes[n].mesh == targetMesh && data->nodes[n].skin) {
+      activeSkin = data->nodes[n].skin;
+      break;
+    }
+  }
+  if (activeSkin) {
+    LogInfo("[GltfLoader] Skin load success");
+    result.isSkinned = true;
+    const size_t jointCount = activeSkin->joints_count;
+    result.inverseBindMatrices.resize(jointCount, glm::mat4(1.0f));
+    if (activeSkin->inverse_bind_matrices) {
+      cgltf_accessor_read_float(activeSkin->inverse_bind_matrices, 0,
+                                glm::value_ptr(result.inverseBindMatrices[0]),
+                                jointCount * 16);
+    }
+    result.boneNames.resize(jointCount);
+    result.boneParents.resize(jointCount, -1);
+    for (size_t j = 0; j < jointCount; ++j) {
+      cgltf_node *node = activeSkin->joints[j];
+      std::string name =
+          node->name ? node->name : ("bone_" + std::to_string(j));
+      result.boneNames[j] = name;
+      result.boneNameToIndex[name] = j;
+      // find parent index
+      if (node->parent) {
+        for (size_t p = 0; p < jointCount; ++p) {
+          if (activeSkin->joints[p] == node->parent) {
+            result.boneParents[j] = static_cast<int>(p);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  result.animations.reserve(data->animations_count);
+  for (size_t a = 0; a < data->animations_count; ++a) {
+    auto anim = std::make_shared<Animation>();
+    const cgltf_animation &cgAnim = data->animations[a];
+    anim->duration = 0.0f;
+
+    // First pass: fill boneIndexMap from channels
+    for (size_t c = 0; c < cgAnim.channels_count; ++c) {
+      const cgltf_animation_channel &ch = cgAnim.channels[c];
+      if (!ch.target_node || !ch.sampler)
+        continue;
+      std::string boneName = ch.target_node->name ? ch.target_node->name : "";
+      auto it = result.boneNameToIndex.find(boneName);
+      if (it != result.boneNameToIndex.end()) {
+        anim->boneIndexMap[boneName] = it->second;
+      }
+    }
+
+    // Second pass: read keyframes per channel
+    for (size_t c = 0; c < cgAnim.channels_count; ++c) {
+      const cgltf_animation_channel &ch = cgAnim.channels[c];
+      if (!ch.target_node || !ch.sampler)
+        continue;
+      std::string boneName = ch.target_node->name ? ch.target_node->name : "";
+      if (anim->boneIndexMap.find(boneName) == anim->boneIndexMap.end())
+        continue;
+
+      const cgltf_animation_sampler &sampler = *ch.sampler;
+      size_t keyCount = sampler.input->count;
+      std::vector<float> times(keyCount);
+      cgltf_accessor_read_float(sampler.input, 0, times.data(), keyCount);
+      if (!times.empty())
+        anim->duration = times.back(); // присваиваем, даже если 0
+
+      // Если times пуст, оставить duration = 0 (но это ошибка)      // Find or
+      // create BoneChannel
+      BoneChannel *boneChannel = nullptr;
+      for (auto &bc : anim->channels) {
+        if (bc.boneName == boneName) {
+          boneChannel = &bc;
+          break;
+        }
+      }
+      if (!boneChannel) {
+        anim->channels.push_back({boneName, {}});
+        boneChannel = &anim->channels.back();
+      }
+
+      if (ch.target_path == cgltf_animation_path_type_translation) {
+        std::vector<glm::vec3> values(keyCount);
+        cgltf_accessor_read_float(sampler.output, 0, glm::value_ptr(values[0]),
+                                  keyCount * 3);
+        for (size_t i = 0; i < keyCount; ++i) {
+          Keyframe kf{times[i]};
+          kf.position = values[i];
+          kf.hasPosition = true;
+          boneChannel->keyframes.push_back(kf);
+        }
+      } else if (ch.target_path == cgltf_animation_path_type_rotation) {
+        std::vector<float> tmp(keyCount * 4);
+        cgltf_accessor_read_float(sampler.output, 0, tmp.data(), keyCount * 4);
+        for (size_t i = 0; i < keyCount; ++i) {
+          glm::quat q(tmp[i * 4 + 3], tmp[i * 4], tmp[i * 4 + 1],
+                      tmp[i * 4 + 2]); // w,x,y,z
+          Keyframe kf{times[i]};
+          kf.rotation = q;
+          kf.hasRotation = true;
+          boneChannel->keyframes.push_back(kf);
+        }
+      } else if (ch.target_path == cgltf_animation_path_type_scale) {
+        std::vector<glm::vec3> values(keyCount);
+        cgltf_accessor_read_float(sampler.output, 0, glm::value_ptr(values[0]),
+                                  keyCount * 3);
+        for (size_t i = 0; i < keyCount; ++i) {
+          Keyframe kf{times[i]};
+          kf.scale = values[i];
+          kf.hasScale = true;
+          boneChannel->keyframes.push_back(kf);
+        }
+      }
+    }
+    // Sort keyframes in each channel
+    for (auto &bc : anim->channels) {
+      std::sort(
+          bc.keyframes.begin(), bc.keyframes.end(),
+          [](const Keyframe &a, const Keyframe &b) { return a.time < b.time; });
+    }
+    result.animations.push_back(anim);
+  }
+
   const cgltf_accessor *posAcc = nullptr;
   const cgltf_accessor *normAcc = nullptr;
   const cgltf_accessor *uvAcc = nullptr;
@@ -285,18 +414,78 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     }
   }
 
-  // Создаем вершины
-  std::vector<StaticVertex> staticVertices(vCount);
-  for (size_t i = 0; i < vCount; ++i) {
-    staticVertices[i].position = positions[i];
-    staticVertices[i].normal = normals[i];
-    staticVertices[i].uv = uvs[i];
+  const cgltf_accessor *jointsAcc = nullptr, *weightsAcc = nullptr;
+  if (result.isSkinned) {
+    for (size_t i = 0; i < prim.attributes_count; ++i) {
+      const auto &attr = prim.attributes[i];
+      if (strcmp(attr.name, "JOINTS_0") == 0)
+        jointsAcc = attr.data;
+      else if (strcmp(attr.name, "WEIGHTS_0") == 0)
+        weightsAcc = attr.data;
+    }
+    if (!jointsAcc || !weightsAcc) {
+      LogInfo("[GltfLoader] WARNING: Skin marked but no JOINTS_0/WEIGHTS_0. "
+              "Falling back to static mesh.");
+      result.isSkinned = false;
+    }
   }
 
-  // Создаем меш
-  result.mesh = std::make_shared<Mesh>(staticVertices, indices);
-  result.isSkinned = false;
+  if (result.isSkinned) {
+    // --- Создаём скиннинг-меш (SkinnedVertex) ---
+    std::vector<SkinnedVertex> skinnedVertices(vCount);
+    for (size_t i = 0; i < vCount; ++i) {
+      skinnedVertices[i].position = positions[i];
+      skinnedVertices[i].normal = normals[i];
+      skinnedVertices[i].uv = uvs[i];
+      for (int j = 0; j < 4; ++j) {
+        skinnedVertices[i].boneIds[j] = -1;
+        skinnedVertices[i].boneWeights[j] = 0.0f;
+      }
+    }
 
+    // Читаем веса (4 float на вершину)
+    std::vector<glm::vec4> weights(vCount);
+    cgltf_accessor_read_float(weightsAcc, 0, glm::value_ptr(weights[0]),
+                              vCount * 4);
+
+    // Читаем индексы костей
+    if (jointsAcc->buffer_view && jointsAcc->buffer_view->buffer->data) {
+      const uint8_t *buf =
+          static_cast<const uint8_t *>(jointsAcc->buffer_view->buffer->data);
+      size_t offset = jointsAcc->offset + jointsAcc->buffer_view->offset;
+      size_t stride = jointsAcc->buffer_view->stride
+                          ? jointsAcc->buffer_view->stride
+                          : 4; // 4 байта на 4 индекса (если uint8)
+      for (size_t i = 0; i < vCount; ++i) {
+        const uint8_t *ptr = buf + offset + i * stride;
+        if (jointsAcc->component_type == cgltf_component_type_r_16u) {
+          const uint16_t *j16 = reinterpret_cast<const uint16_t *>(ptr);
+          for (int j = 0; j < 4; ++j)
+            skinnedVertices[i].boneIds[j] = static_cast<int>(j16[j]);
+        } else if (jointsAcc->component_type == cgltf_component_type_r_8u) {
+          for (int j = 0; j < 4; ++j)
+            skinnedVertices[i].boneIds[j] = static_cast<int>(ptr[j]);
+        } else {
+          const uint32_t *j32 = reinterpret_cast<const uint32_t *>(ptr);
+          for (int j = 0; j < 4; ++j)
+            skinnedVertices[i].boneIds[j] = static_cast<int>(j32[j]);
+        }
+        for (int j = 0; j < 4; ++j)
+          skinnedVertices[i].boneWeights[j] = weights[i][j];
+      }
+    }
+
+    result.mesh = std::make_shared<Mesh>(skinnedVertices, indices);
+  } else {
+    std::vector<StaticVertex> staticVertices(vCount);
+    for (size_t i = 0; i < vCount; ++i) {
+      staticVertices[i].position = positions[i];
+      staticVertices[i].normal = normals[i];
+      staticVertices[i].uv = uvs[i];
+    }
+    result.mesh = std::make_shared<Mesh>(staticVertices, indices);
+    result.isSkinned = false;
+  }
   cgltf_free(data);
   LOG_DEBUG("[GltfLoader] ========== LOADING COMPLETE ==========");
 
