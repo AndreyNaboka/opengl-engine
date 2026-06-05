@@ -9,32 +9,7 @@
 #include <glad/gl.h>
 #include <memory>
 
-static const char *GltfResultToString(cgltf_result res) {
-  switch (res) {
-  case cgltf_result_success:
-    return "Success";
-  case cgltf_result_data_too_short:
-    return "Data too short";
-  case cgltf_result_unknown_format:
-    return "Unknown format";
-  case cgltf_result_invalid_json:
-    return "Invalid JSON";
-  case cgltf_result_invalid_gltf:
-    return "Invalid glTF";
-  case cgltf_result_invalid_options:
-    return "Invalid options";
-  case cgltf_result_file_not_found:
-    return "File not found";
-  case cgltf_result_io_error:
-    return "I/O error";
-  case cgltf_result_out_of_memory:
-    return "Out of memory";
-  case cgltf_result_legacy_gltf:
-    return "Legacy glTF v1.0";
-  default:
-    return "Unknown error";
-  }
-}
+static const char *GltfResultToString(cgltf_result res);
 
 std::shared_ptr<Texture>
 GltfLoader::LoadTextureFromCgltf(const cgltf_image *image,
@@ -491,3 +466,32 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
 
   return result;
 }
+
+static const char *GltfResultToString(cgltf_result res) {
+  switch (res) {
+  case cgltf_result_success:
+    return "Success";
+  case cgltf_result_data_too_short:
+    return "Data too short";
+  case cgltf_result_unknown_format:
+    return "Unknown format";
+  case cgltf_result_invalid_json:
+    return "Invalid JSON";
+  case cgltf_result_invalid_gltf:
+    return "Invalid glTF";
+  case cgltf_result_invalid_options:
+    return "Invalid options";
+  case cgltf_result_file_not_found:
+    return "File not found";
+  case cgltf_result_io_error:
+    return "I/O error";
+  case cgltf_result_out_of_memory:
+    return "Out of memory";
+  case cgltf_result_legacy_gltf:
+    return "Legacy glTF v1.0";
+  default:
+    return "Unknown error";
+  }
+}
+
+

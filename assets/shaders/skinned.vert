@@ -21,7 +21,7 @@ void main() {
     vec4 pos = vec4(a_Position, 1.0);
     vec3 norm = a_Normal;
 
-/*    if (u_Skinned == 1) {
+    if (u_Skinned == 1) {
         vec4 skinnedPos = vec4(0.0);
         vec3 skinnedNorm = vec3(0.0);
         for (int i = 0; i < 4; ++i) {
@@ -38,7 +38,7 @@ void main() {
         pos = skinnedPos;
         norm = normalize(skinnedNorm);
     }
-*/
+
     vec4 worldPos = u_Model * pos;
     v_WorldPos = worldPos.xyz;
     v_Normal = mat3(transpose(inverse(u_Model))) * norm;
