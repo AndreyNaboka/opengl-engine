@@ -76,8 +76,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   GltfModelData result;
   auto absPath = Path::ResolveAssetPath(assetPath);
 
-  LOG_DEBUG("[GltfLoader] ========== START LOADING ==========");
-  LOG_DEBUG("[GltfLoader] File: " + absPath.string());
+  LogInfo("[GltfLoader] File: " + absPath.string());
 
   cgltf_options opts = {};
   cgltf_data *data = nullptr;
@@ -327,18 +326,10 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     size_t offset = posAcc->offset + posAcc->buffer_view->offset;
     size_t stride = posAcc->buffer_view->stride ? posAcc->buffer_view->stride
                                                 : sizeof(float) * 3;
-
-    LOG_DEBUG("[GltfLoader] Reading positions: offset=" +
-              std::to_string(offset) + ", stride=" + std::to_string(stride));
-
     for (size_t i = 0; i < vCount; ++i) {
       const float *pos =
           reinterpret_cast<const float *>(bufferData + offset + i * stride);
       positions[i] = glm::vec3(pos[0], pos[1], pos[2]);
-      LOG_DEBUG("[GltfLoader] Vertex " + std::to_string(i) + " position: (" +
-                std::to_string(positions[i].x) + ", " +
-                std::to_string(positions[i].y) + ", " +
-                std::to_string(positions[i].z) + ")");
     }
   } else {
     LogInfo("[GltfLoader] ERROR: No buffer data for positions!");
@@ -355,19 +346,10 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     size_t stride = normAcc->buffer_view->stride ? normAcc->buffer_view->stride
                                                  : sizeof(float) * 3;
 
-    LOG_DEBUG("[GltfLoader] Reading normals: offset=" + std::to_string(offset) +
-              ", stride=" + std::to_string(stride));
-
     for (size_t i = 0; i < vCount; ++i) {
       const float *norm =
           reinterpret_cast<const float *>(bufferData + offset + i * stride);
       normals[i] = glm::vec3(norm[0], norm[1], norm[2]);
-      if (i < 3) {
-        LOG_DEBUG("[GltfLoader] Normal " + std::to_string(i) + ": (" +
-                  std::to_string(normals[i].x) + ", " +
-                  std::to_string(normals[i].y) + ", " +
-                  std::to_string(normals[i].z) + ")");
-      }
     }
   }
 
@@ -379,7 +361,6 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     size_t offset = uvAcc->offset + uvAcc->buffer_view->offset;
     size_t stride = uvAcc->buffer_view->stride ? uvAcc->buffer_view->stride
                                                : sizeof(float) * 2;
-
     LogInfo("[GltfLoader] Reading UVs");
     for (size_t i = 0; i < vCount; ++i) {
       const float *uv =
@@ -403,10 +384,6 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
           idxAcc->buffer_view->stride
               ? idxAcc->buffer_view->stride
               : (idxAcc->component_type == cgltf_component_type_r_16u ? 2 : 4);
-
-      LOG_DEBUG("[GltfLoader] Reading indices: offset=" +
-                std::to_string(offset) + ", stride=" + std::to_string(stride));
-
       if (idxAcc->component_type == cgltf_component_type_r_16u) {
         for (size_t i = 0; i < iCount; ++i) {
           const uint16_t *idx = reinterpret_cast<const uint16_t *>(
@@ -446,7 +423,6 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   }
 
   if (result.isSkinned) {
-    // --- Создаём скиннинг-меш (SkinnedVertex) ---
     std::vector<SkinnedVertex> skinnedVertices(vCount);
     for (size_t i = 0; i < vCount; ++i) {
       skinnedVertices[i].position = positions[i];
@@ -458,12 +434,10 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
       }
     }
 
-    // Читаем веса (4 float на вершину)
     std::vector<glm::vec4> weights(vCount);
     for (size_t i = 0; i < vCount; ++i)
       cgltf_accessor_read_float(weightsAcc, i, glm::value_ptr(weights[i]), 4);
 
-    // Читаем индексы костей
     if (jointsAcc->buffer_view && jointsAcc->buffer_view->buffer->data) {
       const uint8_t *buf =
           static_cast<const uint8_t *>(jointsAcc->buffer_view->buffer->data);
@@ -502,8 +476,6 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     result.isSkinned = false;
   }
   cgltf_free(data);
-  LOG_DEBUG("[GltfLoader] ========== LOADING COMPLETE ==========");
-
   return result;
 }
 
