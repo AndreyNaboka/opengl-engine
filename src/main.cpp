@@ -6,13 +6,9 @@
 #include "Renderer.h"
 #include "GltfLoader.h"
 #include "Animator.h"
-#include "Utils/Logger.h"
-
 #include <memory>
 #include <string>
-
 #include <GLFW/glfw3.h>
-
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -62,20 +58,17 @@ int main() {
 
   // Model
   auto modelData = GltfLoader::Load("assets/models/enemy.glb");
-  LogInfo("[main] boneParents size = " +
-          std::to_string(modelData.boneParents.size()));
-  LogInfo("[main] inverseBindMatrices size = " +
-          std::to_string(modelData.inverseBindMatrices.size()));
   auto modelShader = std::make_unique<Shader>("assets/shaders/skinned.vert",
                                               "assets/shaders/terrain.frag");
   Animator animator;
   if (!modelData.animations.empty()) {
-    animator.SetAnimation(modelData.animations[0].get(),
-                          modelData.inverseBindMatrices, modelData.boneParents,
-                          modelData.boneNames, modelData.boneBindTranslations,
-                          modelData.boneBindRotations, modelData.boneBindScales,
-                          modelData.boneRootParentTransforms,
-                          true); // loop
+    animator.SetAnimation(
+        modelData.animations[modelData.animations.size() - 1].get(),
+        modelData.inverseBindMatrices, modelData.boneParents,
+        modelData.boneNames, modelData.boneBindTranslations,
+        modelData.boneBindRotations, modelData.boneBindScales,
+        modelData.boneRootParentTransforms,
+        true); // loop
   }
   RenderCommand cmd1;
   cmd1.mesh = modelData.mesh.get();
@@ -86,12 +79,6 @@ int main() {
     cmd1.texture =
         modelData.materials[modelData.defaultMaterialIndex].albedoTexture.get();
     cmd1.slot = 0;
-
-    if (cmd1.texture) {
-      LogInfo("Model has texture loaded");
-    } else {
-      LogInfo("Model has no texture, using color only");
-    }
   }
   glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(6.0f));
   glm::mat4 translate =
@@ -122,8 +109,8 @@ int main() {
       continue;
     }
 
-    int fbW = wnd.GetFramebufferWidth();
-    int fbH = wnd.GetFramebufferHeight();
+    const int fbW = std::max(1, wnd.GetFramebufferWidth());
+    const int fbH = std::max(1, wnd.GetFramebufferHeight());
     glViewport(0, 0, fbW, fbH);
     camera.SetAspect(static_cast<float>(fbW) / static_cast<float>(fbH));
 

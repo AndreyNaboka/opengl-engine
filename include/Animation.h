@@ -24,6 +24,7 @@ struct BoneChannel {
 
 class Animation {
 public:
+  std::string name;
   float duration = 0.0f;             // Общая длительность в секундах
   std::vector<BoneChannel> channels; // Каналы по костям
   std::unordered_map<std::string, size_t> boneIndexMap;

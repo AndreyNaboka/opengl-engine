@@ -8,6 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/gl.h>
 #include <memory>
+#include <string>
 
 static const char *GltfResultToString(cgltf_result res);
 
@@ -194,10 +195,13 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   }
 
   result.animations.reserve(data->animations_count);
+  LogInfo("[GltfLoader] Start load " + std::to_string(data->animations_count) +
+          " animations");
   for (size_t a = 0; a < data->animations_count; ++a) {
     auto anim = std::make_shared<Animation>();
     const cgltf_animation &cgAnim = data->animations[a];
     anim->duration = 0.0f;
+    anim->name = std::string(cgAnim.name);
 
     // First pass: fill boneIndexMap from channels
     for (size_t c = 0; c < cgAnim.channels_count; ++c) {
@@ -293,6 +297,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
       std::sort(bc.scaleKeys.begin(), bc.scaleKeys.end(), byTime);
     }
     result.animations.push_back(anim);
+    LogInfo("[GltfLoader]   add animation \"" + anim->name + "\"");
   }
 
   const cgltf_accessor *posAcc = nullptr;
