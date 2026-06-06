@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 #include <glm/matrix.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <cgltf.h>
 #include "Mesh.h"
 #include "Animation.h"
@@ -20,6 +22,10 @@ struct GltfModelData {
   std::shared_ptr<Mesh> mesh;
   std::vector<std::shared_ptr<Animation>> animations;
   std::vector<glm::mat4> inverseBindMatrices;
+  std::vector<glm::vec3> boneBindTranslations;
+  std::vector<glm::quat> boneBindRotations;
+  std::vector<glm::vec3> boneBindScales;
+  std::vector<glm::mat4> boneRootParentTransforms;
   std::unordered_map<std::string, size_t> boneNameToIndex;
   std::vector<int> boneParents;
   std::vector<std::string> boneNames;

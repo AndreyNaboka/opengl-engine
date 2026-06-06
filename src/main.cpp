@@ -46,7 +46,7 @@ int main() {
   Camera camera({0.0f, 8.0f, 25.0f}, 60.0f, wnd.GetWidth() / wnd.GetHeight());
 
   // Ground
-/*  auto shader = std::make_unique<Shader>("assets/shaders/terrain.vert",
+  auto shader = std::make_unique<Shader>("assets/shaders/terrain.vert",
                                          "assets/shaders/terrain.frag");
   auto texture = std::make_unique<Texture>("assets/textures/grass.png");
   auto terrain = GenerateGrid(200.0f, 200.0f, 60, 60, 15.0f);
@@ -57,7 +57,7 @@ int main() {
   groundCmd.texture = texture.get();
   groundCmd.slot = 0;
   groundCmd.model = glm::mat4(1.0f);
- */
+
   float lastTime = 0.0f;
 
   // Model
@@ -72,13 +72,15 @@ int main() {
   if (!modelData.animations.empty()) {
     animator.SetAnimation(modelData.animations[0].get(),
                           modelData.inverseBindMatrices, modelData.boneParents,
-                          modelData.boneNames,
+                          modelData.boneNames, modelData.boneBindTranslations,
+                          modelData.boneBindRotations, modelData.boneBindScales,
+                          modelData.boneRootParentTransforms,
                           true); // loop
   }
   RenderCommand cmd1;
   cmd1.mesh = modelData.mesh.get();
   cmd1.shader = modelShader.get();
-  cmd1.animator = &animator;
+  cmd1.animator = animator.IsPlaying() ? &animator : nullptr;
   if (modelData.defaultMaterialIndex >= 0 &&
       modelData.defaultMaterialIndex < modelData.materials.size()) {
     cmd1.texture =
@@ -128,7 +130,7 @@ int main() {
     animator.Update(dt);
 
     Renderer::BeginScene(camera);
-   // Renderer::Submit(groundCmd);
+    Renderer::Submit(groundCmd);
     Renderer::Submit(cmd1);
     Renderer::EndScene();
 

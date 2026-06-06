@@ -17,7 +17,9 @@ struct Keyframe {
 
 struct BoneChannel {
   std::string boneName;
-  std::vector<Keyframe> keyframes; // Отсортированы по времени
+  std::vector<Keyframe> positionKeys;
+  std::vector<Keyframe> rotationKeys;
+  std::vector<Keyframe> scaleKeys;
 };
 
 class Animation {

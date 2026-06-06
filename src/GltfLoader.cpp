@@ -141,10 +141,18 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     result.isSkinned = true;
     const size_t jointCount = activeSkin->joints_count;
     result.inverseBindMatrices.resize(jointCount, glm::mat4(1.0f));
+    result.boneBindTranslations.resize(jointCount, glm::vec3(0.0f));
+    result.boneBindRotations.resize(jointCount,
+                                    glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+    result.boneBindScales.resize(jointCount, glm::vec3(1.0f));
+    result.boneRootParentTransforms.resize(jointCount, glm::mat4(1.0f));
+
     if (activeSkin->inverse_bind_matrices) {
-      cgltf_accessor_read_float(activeSkin->inverse_bind_matrices, 0,
-                                glm::value_ptr(result.inverseBindMatrices[0]),
-                                jointCount * 16);
+      for (size_t j = 0; j < jointCount; ++j) {
+        cgltf_accessor_read_float(activeSkin->inverse_bind_matrices, j,
+                                  glm::value_ptr(result.inverseBindMatrices[j]),
+                                  16);
+      }
     }
     result.boneNames.resize(jointCount);
     result.boneParents.resize(jointCount, -1);
@@ -154,13 +162,33 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
           node->name ? node->name : ("bone_" + std::to_string(j));
       result.boneNames[j] = name;
       result.boneNameToIndex[name] = j;
+      if (node->has_translation) {
+        result.boneBindTranslations[j] = glm::vec3(
+            node->translation[0], node->translation[1], node->translation[2]);
+      }
+      if (node->has_rotation) {
+        result.boneBindRotations[j] =
+            glm::quat(node->rotation[3], node->rotation[0], node->rotation[1],
+                      node->rotation[2]);
+      }
+      if (node->has_scale) {
+        result.boneBindScales[j] =
+            glm::vec3(node->scale[0], node->scale[1], node->scale[2]);
+      }
       // find parent index
       if (node->parent) {
+        bool parentIsJoint = false;
         for (size_t p = 0; p < jointCount; ++p) {
           if (activeSkin->joints[p] == node->parent) {
             result.boneParents[j] = static_cast<int>(p);
+            parentIsJoint = true;
             break;
           }
+        }
+        if (!parentIsJoint) {
+          float parentWorld[16];
+          cgltf_node_transform_world(node->parent, parentWorld);
+          result.boneRootParentTransforms[j] = glm::make_mat4(parentWorld);
         }
       }
     }
@@ -194,14 +222,17 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
         continue;
 
       const cgltf_animation_sampler &sampler = *ch.sampler;
+      if (!sampler.input || !sampler.output)
+        continue;
       size_t keyCount = sampler.input->count;
+      if (keyCount == 0)
+        continue;
       std::vector<float> times(keyCount);
-      cgltf_accessor_read_float(sampler.input, 0, times.data(), keyCount);
+      for (size_t i = 0; i < keyCount; ++i)
+        cgltf_accessor_read_float(sampler.input, i, &times[i], 1);
       if (!times.empty())
-        anim->duration = times.back(); // присваиваем, даже если 0
-
-      // Если times пуст, оставить duration = 0 (но это ошибка)      // Find or
-      // create BoneChannel
+        anim->duration = std::max(anim->duration, times.back());
+      // Find or create BoneChannel
       BoneChannel *boneChannel = nullptr;
       for (auto &bc : anim->channels) {
         if (bc.boneName == boneName) {
@@ -216,42 +247,51 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
 
       if (ch.target_path == cgltf_animation_path_type_translation) {
         std::vector<glm::vec3> values(keyCount);
-        cgltf_accessor_read_float(sampler.output, 0, glm::value_ptr(values[0]),
-                                  keyCount * 3);
+        for (size_t i = 0; i < keyCount; ++i)
+          cgltf_accessor_read_float(sampler.output, i,
+                                    glm::value_ptr(values[i]), 3);
         for (size_t i = 0; i < keyCount; ++i) {
           Keyframe kf{times[i]};
           kf.position = values[i];
           kf.hasPosition = true;
-          boneChannel->keyframes.push_back(kf);
+          boneChannel->positionKeys.push_back(kf);
         }
       } else if (ch.target_path == cgltf_animation_path_type_rotation) {
-        std::vector<float> tmp(keyCount * 4);
-        cgltf_accessor_read_float(sampler.output, 0, tmp.data(), keyCount * 4);
+        std::vector<glm::vec4> values(keyCount);
         for (size_t i = 0; i < keyCount; ++i) {
-          glm::quat q(tmp[i * 4 + 3], tmp[i * 4], tmp[i * 4 + 1],
-                      tmp[i * 4 + 2]); // w,x,y,z
+          cgltf_accessor_read_float(sampler.output, i,
+                                    glm::value_ptr(values[i]), 4);
+        }
+        for (size_t i = 0; i < keyCount; ++i) {
+          glm::quat q(values[i].w, values[i].x, values[i].y,
+                      values[i].z); // w,x,y,z
           Keyframe kf{times[i]};
           kf.rotation = q;
           kf.hasRotation = true;
-          boneChannel->keyframes.push_back(kf);
+          boneChannel->rotationKeys.push_back(kf);
         }
       } else if (ch.target_path == cgltf_animation_path_type_scale) {
         std::vector<glm::vec3> values(keyCount);
-        cgltf_accessor_read_float(sampler.output, 0, glm::value_ptr(values[0]),
-                                  keyCount * 3);
+        for (size_t i = 0; i < keyCount; ++i) {
+          cgltf_accessor_read_float(sampler.output, i,
+                                    glm::value_ptr(values[i]), 3);
+        }
         for (size_t i = 0; i < keyCount; ++i) {
           Keyframe kf{times[i]};
           kf.scale = values[i];
           kf.hasScale = true;
-          boneChannel->keyframes.push_back(kf);
+          boneChannel->scaleKeys.push_back(kf);
         }
       }
     }
     // Sort keyframes in each channel
     for (auto &bc : anim->channels) {
-      std::sort(
-          bc.keyframes.begin(), bc.keyframes.end(),
-          [](const Keyframe &a, const Keyframe &b) { return a.time < b.time; });
+      auto byTime = [](const Keyframe &a, const Keyframe &b) {
+        return a.time < b.time;
+      };
+      std::sort(bc.positionKeys.begin(), bc.positionKeys.end(), byTime);
+      std::sort(bc.rotationKeys.begin(), bc.rotationKeys.end(), byTime);
+      std::sort(bc.scaleKeys.begin(), bc.scaleKeys.end(), byTime);
     }
     result.animations.push_back(anim);
   }
@@ -420,8 +460,8 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
 
     // Читаем веса (4 float на вершину)
     std::vector<glm::vec4> weights(vCount);
-    cgltf_accessor_read_float(weightsAcc, 0, glm::value_ptr(weights[0]),
-                              vCount * 4);
+    for (size_t i = 0; i < vCount; ++i)
+      cgltf_accessor_read_float(weightsAcc, i, glm::value_ptr(weights[i]), 4);
 
     // Читаем индексы костей
     if (jointsAcc->buffer_view && jointsAcc->buffer_view->buffer->data) {
@@ -493,5 +533,3 @@ static const char *GltfResultToString(cgltf_result res) {
     return "Unknown error";
   }
 }
-
-

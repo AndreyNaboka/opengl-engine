@@ -1,5 +1,4 @@
 #include "Animator.h"
-#include "Utils/Logger.h"
 #include <algorithm>
 #include <cmath>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -9,11 +8,19 @@ void Animator::SetAnimation(Animation *anim,
                             const std::vector<glm::mat4> &inverseBindMatrices,
                             const std::vector<int> &boneParents,
                             const std::vector<std::string> &boneNames,
+                            const std::vector<glm::vec3> &bindTranslations,
+                            const std::vector<glm::quat> &bindRotations,
+                            const std::vector<glm::vec3> &bindScales,
+                            const std::vector<glm::mat4> &rootParentTransforms,
                             bool loop) {
   _currentAnim = anim;
   _boneOffsets = inverseBindMatrices;
   _boneParents = boneParents;
   _boneNames = boneNames;
+  _bindTranslations = bindTranslations;
+  _bindRotations = bindRotations;
+  _bindScales = bindScales;
+  _rootParentTransforms = rootParentTransforms;
   _loop = loop;
   _time = 0.0f;
   if (anim) {
@@ -31,35 +38,41 @@ void Animator::Update(float dt) {
   if (_loop && _time > _currentAnim->duration)
     _time = std::fmod(_time, _currentAnim->duration);
 
-  std::vector<glm::mat4> localTransforms(_boneParents.size(), glm::mat4(1.0f));
+  std::vector<const BoneChannel *> channels(_boneParents.size(), nullptr);
   for (size_t i = 0; i < _boneParents.size(); ++i) {
-    const BoneChannel *channel = nullptr;
     for (const auto &ch : _currentAnim->channels) {
       if (ch.boneName == _boneNames[i]) {
-        channel = &ch;
+        channels[i] = &ch;
         break;
       }
     }
-    if (channel && !channel->keyframes.empty()) {
-      Keyframe kf = Interpolate(channel->keyframes, _time);
-      localTransforms[i] = TransformFromKeyframe(kf);
+  }
+
+  for (size_t i = 0; i < _boneParents.size(); ++i) {
+    if (_boneParents[i] == -1) {
+      const glm::mat4 rootParent = i < _rootParentTransforms.size()
+                                       ? _rootParentTransforms[i]
+                                       : glm::mat4(1.0f);
+      CalculateBoneTransform(i, rootParent, channels);
     }
   }
+}
 
-  std::vector<glm::mat4> globalTransforms(_boneParents.size());
-  for (size_t i = 0; i < _boneParents.size(); ++i) {
-    if (_boneParents[i] == -1)
-      globalTransforms[i] = localTransforms[i];
-    else
-      globalTransforms[i] =
-          globalTransforms[_boneParents[i]] * localTransforms[i];
-  }
+void Animator::CalculateBoneTransform(
+    size_t boneIndex, const glm::mat4 &parentTransform,
+    const std::vector<const BoneChannel *> &channels) {
+  glm::mat4 globalTransform =
+      parentTransform * TransformFromChannel(boneIndex, channels[boneIndex]);
 
-  for (size_t i = 0; i < _boneParents.size(); ++i) {
-    if (i < _boneOffsets.size())
-      _finalBoneMatrices[i] = globalTransforms[i] * _boneOffsets[i];
-    else
-      _finalBoneMatrices[i] = globalTransforms[i];
+  if (boneIndex < _boneOffsets.size())
+    _finalBoneMatrices[boneIndex] = globalTransform * _boneOffsets[boneIndex];
+  else
+    _finalBoneMatrices[boneIndex] = globalTransform;
+
+  for (size_t child = 0; child < _boneParents.size(); ++child) {
+    if (_boneParents[child] == static_cast<int>(boneIndex)) {
+      CalculateBoneTransform(child, globalTransform, channels);
+    }
   }
 }
 
@@ -95,9 +108,31 @@ Keyframe Animator::Interpolate(const std::vector<Keyframe> &keys, float time) {
   return result;
 }
 
-glm::mat4 Animator::TransformFromKeyframe(const Keyframe &kf) {
-  glm::mat4 mat = glm::translate(glm::mat4(1.0f), kf.position);
-  mat = mat * glm::mat4_cast(kf.rotation);
-  mat = glm::scale(mat, kf.scale);
+glm::mat4 Animator::TransformFromChannel(size_t boneIndex,
+                                         const BoneChannel *channel) {
+  glm::vec3 position = boneIndex < _bindTranslations.size()
+                           ? _bindTranslations[boneIndex]
+                           : glm::vec3(0.0f);
+  glm::quat rotation = boneIndex < _bindRotations.size()
+                           ? _bindRotations[boneIndex]
+                           : glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+  glm::vec3 scale =
+      boneIndex < _bindScales.size() ? _bindScales[boneIndex] : glm::vec3(1.0f);
+
+  if (channel) {
+    Keyframe positionKey = Interpolate(channel->positionKeys, _time);
+    Keyframe rotationKey = Interpolate(channel->rotationKeys, _time);
+    Keyframe scaleKey = Interpolate(channel->scaleKeys, _time);
+    if (positionKey.hasPosition)
+      position = positionKey.position;
+    if (rotationKey.hasRotation)
+      rotation = rotationKey.rotation;
+    if (scaleKey.hasScale)
+      scale = scaleKey.scale;
+  }
+
+  glm::mat4 mat = glm::translate(glm::mat4(1.0f), position);
+  mat = mat * glm::mat4_cast(rotation);
+  mat = glm::scale(mat, scale);
   return mat;
 }

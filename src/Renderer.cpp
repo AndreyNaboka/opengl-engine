@@ -1,5 +1,7 @@
 #include "Renderer.h"
 #include "Utils/Logger.h"
+#include <algorithm>
+#include <cstddef>
 #include <glad/gl.h>
 #include <glm/gtc/type_ptr.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -28,6 +30,11 @@ void Renderer::EndScene() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   for (const auto &cmd : _cmdQueue) {
+    if (!cmd.mesh || !cmd.shader) {
+      LogInfo("[Renderer] Skipping render command with null mesh or shader");
+      continue;
+    }
+
     cmd.shader->Bind();
     cmd.shader->SetUniformMat4("u_View", _sceneData.view);
     cmd.shader->SetUniformMat4("u_Projection", _sceneData.projection);
@@ -39,23 +46,25 @@ void Renderer::EndScene() {
       cmd.shader->SetUniformInt("u_Texture", cmd.slot);
     }
 
-    if (cmd.animator) {
+    const auto *animator = cmd.animator;
+    const bool hasSkinning = animator && !animator->GetBoneMatrices().empty();
+
+    if (hasSkinning) {
       cmd.shader->SetUniformInt("u_Skinned", 1);
-      const auto &bones = cmd.animator->GetBoneMatrices();
+      const auto &bones = animator->GetBoneMatrices();
       if (!bones.empty()) {
         int loc = cmd.shader->GetUniformLocation("u_BoneMatrices");
         if (loc != -1) {
-          glUniformMatrix4fv(loc, (GLsizei)bones.size(), GL_FALSE,
+          constexpr size_t maxBones = 128;
+          const size_t count = std::min(bones.size(), maxBones);
+          glUniformMatrix4fv(loc, (GLsizei)count, GL_FALSE,
                              glm::value_ptr(bones[0]));
         }
       }
     } else {
       cmd.shader->SetUniformInt("u_Skinned", 0);
     }
-
-    glDisable(GL_CULL_FACE);
     cmd.mesh->Draw();
-    glEnable(GL_CULL_FACE);
   }
   _cmdQueue.clear();
 }
