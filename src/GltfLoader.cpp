@@ -27,7 +27,7 @@ GltfLoader::LoadTextureFromCgltf(const cgltf_image *image,
       const uint8_t *data =
           static_cast<const uint8_t *>(buffer->data) + view->offset;
       size_t size = view->size;
-      LogInfo("[GltfLoader] Found embedded texture, size: " +
+      LogInfo("[GltfLoader] Loading embedded texture, size: " +
               std::to_string(size) + " bytes, mime_type: " +
               (image->mime_type ? image->mime_type : "unknown"));
       texture = std::make_shared<Texture>(data, size, image->mime_type);
@@ -105,7 +105,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
 
   // Load material
   const std::string basePath = absPath.parent_path().string();
-  LogInfo("[GltfLoader] Loading " + std::to_string(data->materials_count) +
+  LogInfo("[GltfLoader] Found " + std::to_string(data->materials_count) +
           " materials");
   result.materials.reserve(data->materials_count);
   for (size_t i = 0; i < data->materials_count; ++i) {
@@ -297,7 +297,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
       std::sort(bc.scaleKeys.begin(), bc.scaleKeys.end(), byTime);
     }
     result.animations.push_back(anim);
-    LogInfo("[GltfLoader]   add animation \"" + anim->name + "\"");
+    LogInfo("[GltfLoader]   [+] \"" + anim->name + "\"");
   }
 
   const cgltf_accessor *posAcc = nullptr;
