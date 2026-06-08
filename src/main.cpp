@@ -43,7 +43,7 @@ int main() {
 
   // Ground
   auto shader = std::make_unique<Shader>("assets/shaders/terrain.vert",
-                                         "assets/shaders/terrain.frag");
+                                         "assets/shaders/common.frag");
   auto texture = std::make_unique<Texture>("assets/textures/grass.png");
   auto terrain = GenerateGrid(200.0f, 200.0f, 60, 60, 15.0f);
 
@@ -59,7 +59,7 @@ int main() {
   // Model
   auto modelData = GltfLoader::Load("assets/models/enemy.glb");
   auto modelShader = std::make_unique<Shader>("assets/shaders/skinned.vert",
-                                              "assets/shaders/terrain.frag");
+                                              "assets/shaders/common.frag");
   Animator animator;
   if (!modelData.animations.empty()) {
     animator.SetAnimation(
