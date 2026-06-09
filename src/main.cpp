@@ -6,6 +6,10 @@
 #include "Renderer.h"
 #include "GltfLoader.h"
 #include "Animator.h"
+#include "CubeMapTexture.h"
+#include "Sky.h"
+#include <algorithm>
+#include <array>
 #include <memory>
 #include <string>
 #include <GLFW/glfw3.h>
@@ -52,6 +56,7 @@ int main() {
   groundCmd.shader = shader.get();
   groundCmd.texture = texture.get();
   groundCmd.slot = 0;
+  groundCmd.cullFace = false;
   groundCmd.model = glm::mat4(1.0f);
 
   float lastTime = 0.0f;
@@ -86,6 +91,30 @@ int main() {
   cmd1.model =
       translate * scale; // Scale применяется первым к вершинам, потом translate
 
+  // Skybox
+  const std::array<std::string, 6> skyboxFaces = {
+      "assets/textures/skybox/space_rt.png", // +X
+      "assets/textures/skybox/space_lf.png", // -X
+      "assets/textures/skybox/space_up.png", // +Y
+      "assets/textures/skybox/space_dn.png", // -Y
+      "assets/textures/skybox/space_bk.png", // +Z
+      "assets/textures/skybox/space_ft.png"  // -Z
+  };
+  auto skyboxTexture = std::make_shared<CubeMapTexture>(skyboxFaces);
+  auto skyboxShader = std::make_shared<Shader>("assets/shaders/skybox.vert",
+                                               "assets/shaders/skybox.frag");
+  auto skyboxMesh = Sky::CreateSkyBoxMesh();
+
+  // Настройка команды Skybox
+  RenderCommand skyboxCmd;
+  skyboxCmd.mesh = skyboxMesh.get();
+  skyboxCmd.shader = skyboxShader.get();
+  skyboxCmd.depthWrite = false; // не пишем в глубину
+  skyboxCmd.depthTest = true;   // но тестируем (чтобы объекты перекрывали небо)
+  skyboxCmd.cullFace = false;   // рисуем внутреннюю сторону куба
+  skyboxCmd.depthFunc = DepthFunc::LessEqual;
+  skyboxCmd.model = glm::mat4(1.0f);
+
   // ImGui
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -116,7 +145,14 @@ int main() {
 
     animator.Update(dt);
 
+    skyboxShader->Bind();
+    skyboxShader->SetUniformInt("u_Skybox", 0);
+    skyboxTexture->Bind(0);
+    // также можно передать время
+    //    skyboxShader->SetUniformFloat("u_Time", glfwGetTime());
+
     Renderer::BeginScene(camera);
+    Renderer::Submit(skyboxCmd);
     Renderer::Submit(groundCmd);
     Renderer::Submit(cmd1);
     Renderer::EndScene();

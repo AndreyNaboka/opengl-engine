@@ -7,6 +7,8 @@ class Shader {
 public:
   Shader(const std::string &vertexPath, const std::string &fragmentPath);
   ~Shader();
+  Shader(const Shader &) = delete;
+  Shader &operator=(const Shader &) = delete;
 
   void Bind() const;
   void Unbind() const;
@@ -14,7 +16,7 @@ public:
   void SetUniformMat4(const std::string &name, const glm::mat4 &matrix) const;
   void SetUniformVec3(const std::string &name, const glm::vec3 &vector) const;
   void SetUniformInt(const std::string &name, int value) const;
-
+  void SetUniformFloat(const std::string &name, float value) const;
   unsigned int GetID() const { return _ID; }
   int GetUniformLocation(const std::string &name) const;
 

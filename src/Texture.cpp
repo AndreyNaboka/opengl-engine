@@ -20,6 +20,8 @@ Texture::Texture(const uint8_t *data, size_t size, const char *mime_type) {
   unsigned char *imageData = stbi_load_from_memory(
       data, static_cast<int>(size), &width, &height, &channels, 0);
   if (imageData) {
+    _width = width;
+    _height = height;
     GLenum format = (channels == 4) ? GL_RGBA : GL_RGB;
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
                  GL_UNSIGNED_BYTE, imageData);

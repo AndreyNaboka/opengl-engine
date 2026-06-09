@@ -8,13 +8,22 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+enum class DepthFunc {
+  Less,
+  LessEqual,
+};
+
 struct RenderCommand {
-  const Mesh *mesh;
-  const Shader *shader;
+  const Mesh *mesh = nullptr;
+  const Shader *shader = nullptr;
   const Animator *animator = nullptr;
-  const Texture *texture;
-  unsigned int slot;
+  const Texture *texture = nullptr;
+  unsigned int slot = 0;
   glm::mat4 model = glm::mat4(1.0f);
+  bool depthWrite = true; // запись в буфер глубины
+  bool depthTest = true;  // тест глубины
+  bool cullFace = true;   // отсечение задних граней
+  DepthFunc depthFunc = DepthFunc::Less;
 };
 
 class Renderer {

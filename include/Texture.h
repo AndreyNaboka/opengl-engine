@@ -7,6 +7,9 @@ public:
   explicit Texture(const std::string &path);
   Texture(const uint8_t *data, size_t size, const char *mime_type = nullptr);
   ~Texture();
+  Texture(const Texture &) = delete;
+  Texture &operator=(const Texture &) = delete;
+
   void Bind(unsigned int slot = 0) const;
   int GetWidth() const { return _width; }
   int GetHeight() const { return _height; }

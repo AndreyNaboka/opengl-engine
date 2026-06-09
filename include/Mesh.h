@@ -31,6 +31,9 @@ public:
        const std::vector<uint32_t> &indices);
 
   ~Mesh();
+  Mesh(const Mesh &) = delete;
+  Mesh &operator=(const Mesh &) = delete;
+
   void Draw() const;
 
   unsigned int GetVAO() const { return _VAO; }

@@ -4,8 +4,6 @@
 #include <cstddef>
 #include <glad/gl.h>
 #include <glm/gtc/type_ptr.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/string_cast.hpp>
 
 Renderer::SceneData Renderer::_sceneData;
 std::vector<RenderCommand> Renderer::_cmdQueue;
@@ -13,7 +11,9 @@ std::vector<RenderCommand> Renderer::_cmdQueue;
 void Renderer::Init() {
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
+  glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
   glCullFace(GL_BACK);
+  _cmdQueue.reserve(128);
 }
 
 void Renderer::BeginScene(const Camera &camera) {
@@ -34,6 +34,15 @@ void Renderer::EndScene() {
       LogInfo("[Renderer] Skipping render command with null mesh or shader");
       continue;
     }
+    if (cmd.depthFunc == DepthFunc::LessEqual) {
+      glDepthFunc(GL_LEQUAL);
+    }
+    if (!cmd.depthTest)
+      glDisable(GL_DEPTH_TEST);
+    if (!cmd.depthWrite)
+      glDepthMask(GL_FALSE);
+    if (!cmd.cullFace)
+      glDisable(GL_CULL_FACE);
 
     cmd.shader->Bind();
     cmd.shader->SetUniformMat4("u_View", _sceneData.view);
@@ -45,7 +54,6 @@ void Renderer::EndScene() {
       cmd.texture->Bind(cmd.slot);
       cmd.shader->SetUniformInt("u_Texture", cmd.slot);
     }
-
     const auto *animator = cmd.animator;
     const bool hasSkinning = animator && !animator->GetBoneMatrices().empty();
 
@@ -65,6 +73,16 @@ void Renderer::EndScene() {
       cmd.shader->SetUniformInt("u_Skinned", 0);
     }
     cmd.mesh->Draw();
+
+    if (cmd.depthFunc == DepthFunc::LessEqual) {
+      glDepthFunc(GL_LESS);
+    }
+    if (!cmd.depthTest)
+      glEnable(GL_DEPTH_TEST);
+    if (!cmd.depthWrite)
+      glDepthMask(GL_TRUE);
+    if (!cmd.cullFace)
+      glEnable(GL_CULL_FACE);
   }
   _cmdQueue.clear();
 }

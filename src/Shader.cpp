@@ -45,15 +45,30 @@ int Shader::GetUniformLocation(const std::string &name) const {
 
 void Shader::SetUniformMat4(const std::string &name,
                             const glm::mat4 &matrix) const {
-  glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE,
-                     glm::value_ptr(matrix));
+  const int location = GetUniformLocation(name);
+  if (location == -1)
+    return;
+  glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
 }
 void Shader::SetUniformVec3(const std::string &name,
                             const glm::vec3 &vector) const {
-  glUniform3fv(GetUniformLocation(name), 1, glm::value_ptr(vector));
+  const int location = GetUniformLocation(name);
+  if (location == -1)
+    return;
+  glUniform3fv(location, 1, glm::value_ptr(vector));
 }
 void Shader::SetUniformInt(const std::string &name, int value) const {
-  glUniform1i(GetUniformLocation(name), value);
+  const int location = GetUniformLocation(name);
+  if (location == -1)
+    return;
+  glUniform1i(location, value);
+}
+
+void Shader::SetUniformFloat(const std::string &name, float value) const {
+  const int location = GetUniformLocation(name);
+  if (location == -1)
+    return;
+  glUniform1f(location, value);
 }
 
 std::string Shader::ReadFile(const std::string &path) const {
