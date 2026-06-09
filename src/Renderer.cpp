@@ -50,9 +50,11 @@ void Renderer::EndScene() {
     cmd.shader->SetUniformMat4("u_Model", cmd.model);
     cmd.shader->SetUniformVec3("u_CameraPos", _sceneData.cameraPos);
 
-    if (cmd.texture) {
-      cmd.texture->Bind(cmd.slot);
-      cmd.shader->SetUniformInt("u_Texture", cmd.slot);
+    for (const auto &binding : cmd.textures) {
+      if (!binding.texture)
+        continue;
+      binding.texture->Bind(binding.slot);
+      cmd.shader->SetUniformInt(binding.samplerName, binding.slot);
     }
     const auto *animator = cmd.animator;
     const bool hasSkinning = animator && !animator->GetBoneMatrices().empty();

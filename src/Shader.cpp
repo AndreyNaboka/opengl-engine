@@ -36,8 +36,6 @@ void Shader::Unbind() const { glUseProgram(0); }
 int Shader::GetUniformLocation(const std::string &name) const {
   if (_cache.find(name) == _cache.end()) {
     int loc = glGetUniformLocation(_ID, name.c_str());
-    if (loc == -1)
-      LogInfo("[Shader] uniform " + name + " not found");
     _cache[name] = loc;
   }
   return _cache[name];

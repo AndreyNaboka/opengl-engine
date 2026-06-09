@@ -1,8 +1,9 @@
 #pragma once
+#include "BindableTexture.h"
 #include <string>
 #include <cstdint>
 
-class Texture {
+class Texture : public BindableTexture {
 public:
   explicit Texture(const std::string &path);
   Texture(const uint8_t *data, size_t size, const char *mime_type = nullptr);
@@ -10,7 +11,7 @@ public:
   Texture(const Texture &) = delete;
   Texture &operator=(const Texture &) = delete;
 
-  void Bind(unsigned int slot = 0) const;
+  void Bind(unsigned int slot = 0) const override;
   int GetWidth() const { return _width; }
   int GetHeight() const { return _height; }
 

@@ -1,16 +1,17 @@
 #pragma once
+#include "BindableTexture.h"
 #include <string>
 #include <array>
 #include <glad/gl.h>
 
-class CubeMapTexture {
+class CubeMapTexture : public BindableTexture {
 public:
   explicit CubeMapTexture(const std::array<std::string, 6> &faces);
   ~CubeMapTexture();
   CubeMapTexture(const CubeMapTexture &) = delete;
   CubeMapTexture &operator=(const CubeMapTexture &) = delete;
 
-  void Bind(unsigned int slot = 0) const;
+  void Bind(unsigned int slot = 0) const override;
   unsigned int GetID() const { return _ID; }
 
 private:

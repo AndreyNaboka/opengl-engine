@@ -54,8 +54,7 @@ int main() {
   RenderCommand groundCmd;
   groundCmd.mesh = terrain.get();
   groundCmd.shader = shader.get();
-  groundCmd.texture = texture.get();
-  groundCmd.slot = 0;
+  groundCmd.textures.push_back({texture.get(), "u_Texture", 0});
   groundCmd.cullFace = false;
   groundCmd.model = glm::mat4(1.0f);
 
@@ -81,9 +80,9 @@ int main() {
   cmd1.animator = animator.IsPlaying() ? &animator : nullptr;
   if (modelData.defaultMaterialIndex >= 0 &&
       modelData.defaultMaterialIndex < modelData.materials.size()) {
-    cmd1.texture =
-        modelData.materials[modelData.defaultMaterialIndex].albedoTexture.get();
-    cmd1.slot = 0;
+    cmd1.textures.push_back({modelData.materials[modelData.defaultMaterialIndex]
+                                 .albedoTexture.get(),
+                             "u_Texture", 0});
   }
   glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(6.0f));
   glm::mat4 translate =
@@ -114,6 +113,7 @@ int main() {
   skyboxCmd.cullFace = false;   // рисуем внутреннюю сторону куба
   skyboxCmd.depthFunc = DepthFunc::LessEqual;
   skyboxCmd.model = glm::mat4(1.0f);
+  skyboxCmd.textures.push_back({skyboxTexture.get(), "u_Skybox", 0});
 
   // ImGui
   IMGUI_CHECKVERSION();
@@ -144,12 +144,6 @@ int main() {
     camera.SetAspect(static_cast<float>(fbW) / static_cast<float>(fbH));
 
     animator.Update(dt);
-
-    skyboxShader->Bind();
-    skyboxShader->SetUniformInt("u_Skybox", 0);
-    skyboxTexture->Bind(0);
-    // также можно передать время
-    //    skyboxShader->SetUniformFloat("u_Time", glfwGetTime());
 
     Renderer::BeginScene(camera);
     Renderer::Submit(skyboxCmd);

@@ -1,11 +1,12 @@
 #pragma once
 #include "Camera.h"
 #include "Shader.h"
-#include "Texture.h"
+#include "BindableTexture.h"
 #include "Mesh.h"
 #include "Animator.h"
 #include <glm/fwd.hpp>
 #include <glm/glm.hpp>
+#include <string>
 #include <vector>
 
 enum class DepthFunc {
@@ -13,16 +14,21 @@ enum class DepthFunc {
   LessEqual,
 };
 
+struct TextureBinding {
+  const BindableTexture *texture = nullptr;
+  std::string samplerName = "u_Texture";
+  unsigned int slot = 0;
+};
+
 struct RenderCommand {
   const Mesh *mesh = nullptr;
   const Shader *shader = nullptr;
   const Animator *animator = nullptr;
-  const Texture *texture = nullptr;
-  unsigned int slot = 0;
+  std::vector<TextureBinding> textures;
   glm::mat4 model = glm::mat4(1.0f);
-  bool depthWrite = true; // запись в буфер глубины
-  bool depthTest = true;  // тест глубины
-  bool cullFace = true;   // отсечение задних граней
+  bool depthWrite = true;
+  bool depthTest = true;
+  bool cullFace = true;
   DepthFunc depthFunc = DepthFunc::Less;
 };
 
