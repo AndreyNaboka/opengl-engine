@@ -1,24 +1,14 @@
-#include "Shader.h"
-#include "TerrainGenerator.h"
 #include "Window.h"
 #include "InputManager.h"
 #include "Camera.h"
 #include "Renderer.h"
-#include "GltfLoader.h"
-#include "Animator.h"
-#include "CubeMapTexture.h"
-#include "Sky.h"
+#include "Level.h"
 #include <algorithm>
-#include <array>
-#include <memory>
 #include <string>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/string_cast.hpp>
 
 void RenderDebugText(const Camera &cam) {
   ImGui_ImplOpenGL3_NewFrame();
@@ -44,76 +34,9 @@ int main() {
 
   Renderer::Init();
   Camera camera({0.0f, 8.0f, 25.0f}, 60.0f, wnd.GetWidth() / wnd.GetHeight());
-
-  // Ground
-  auto shader = std::make_unique<Shader>("assets/shaders/terrain.vert",
-                                         "assets/shaders/common.frag");
-  auto texture = std::make_unique<Texture>("assets/textures/grass.png");
-  auto terrain = GenerateGrid(200.0f, 200.0f, 60, 60, 15.0f);
-
-  RenderCommand groundCmd;
-  groundCmd.mesh = terrain.get();
-  groundCmd.shader = shader.get();
-  groundCmd.textures.push_back({texture.get(), "u_Texture", 0});
-  groundCmd.state = RenderState::DepthTest | RenderState::DepthWrite;
-  groundCmd.model = glm::mat4(1.0f);
+  Level level;
 
   float lastTime = 0.0f;
-
-  // Model
-  auto modelData = GltfLoader::Load("assets/models/enemy.glb");
-  auto modelShader = std::make_unique<Shader>("assets/shaders/skinned.vert",
-                                              "assets/shaders/common.frag");
-  Animator animator;
-  if (!modelData.animations.empty()) {
-    animator.SetAnimation(
-        modelData.animations[modelData.animations.size() - 1].get(),
-        modelData.inverseBindMatrices, modelData.boneParents,
-        modelData.boneNames, modelData.boneBindTranslations,
-        modelData.boneBindRotations, modelData.boneBindScales,
-        modelData.boneRootParentTransforms,
-        true); // loop
-  }
-  RenderCommand cmd1;
-  cmd1.mesh = modelData.mesh.get();
-  cmd1.shader = modelShader.get();
-  if (animator.IsPlaying()) {
-    cmd1.skinning.boneMatrices = &animator.GetBoneMatrices();
-  }
-  if (modelData.defaultMaterialIndex >= 0 &&
-      modelData.defaultMaterialIndex < modelData.materials.size()) {
-    cmd1.textures.push_back({modelData.materials[modelData.defaultMaterialIndex]
-                                 .albedoTexture.get(),
-                             "u_Texture", 0});
-  }
-  glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(6.0f));
-  glm::mat4 translate =
-      glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, -5.0f));
-  cmd1.model =
-      translate * scale; // Scale применяется первым к вершинам, потом translate
-
-  // Skybox
-  const std::array<std::string, 6> skyboxFaces = {
-      "assets/textures/skybox/space_rt.png", // +X
-      "assets/textures/skybox/space_lf.png", // -X
-      "assets/textures/skybox/space_up.png", // +Y
-      "assets/textures/skybox/space_dn.png", // -Y
-      "assets/textures/skybox/space_bk.png", // +Z
-      "assets/textures/skybox/space_ft.png"  // -Z
-  };
-  auto skyboxTexture = std::make_shared<CubeMapTexture>(skyboxFaces);
-  auto skyboxShader = std::make_shared<Shader>("assets/shaders/skybox.vert",
-                                               "assets/shaders/skybox.frag");
-  auto skyboxMesh = Sky::CreateSkyBoxMesh();
-
-  // Настройка команды Skybox
-  RenderCommand skyboxCmd;
-  skyboxCmd.mesh = skyboxMesh.get();
-  skyboxCmd.shader = skyboxShader.get();
-  skyboxCmd.state = static_cast<RenderStateMask>(RenderState::DepthTest);
-  skyboxCmd.depthFunc = DepthFunc::LessEqual;
-  skyboxCmd.model = glm::mat4(1.0f);
-  skyboxCmd.textures.push_back({skyboxTexture.get(), "u_Skybox", 0});
 
   // ImGui
   IMGUI_CHECKVERSION();
@@ -143,12 +66,10 @@ int main() {
     glViewport(0, 0, fbW, fbH);
     camera.SetAspect(static_cast<float>(fbW) / static_cast<float>(fbH));
 
-    animator.Update(dt);
+    level.Update(dt);
 
     Renderer::BeginScene(camera);
-    Renderer::Submit(skyboxCmd);
-    Renderer::Submit(groundCmd);
-    Renderer::Submit(cmd1);
+    level.Render();
     Renderer::EndScene();
 
     RenderDebugText(camera);

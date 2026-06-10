@@ -6,10 +6,11 @@ project(
   VERSION 0.0.1
   LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+option(ENGINE_ENABLE_ASAN "Enable AddressSanitizer for Debug builds" OFF)
+option(ENGINE_CGLTF_NO_STDIO "Build cgltf without stdio helpers" OFF)
 
 # stb_image
 add_library(stb_image INTERFACE)
@@ -23,13 +24,16 @@ target_include_directories(glad PUBLIC third_party/glad/include)
 # other
 find_package(glfw3 3.3 REQUIRED)
 find_package(glm REQUIRED)
+find_package(OpenGL REQUIRED)
 
 # sources
-file(GLOB_RECURSE SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
+     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
      "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")
 
 # build
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
 target_compile_definitions(
   ${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:ENGINE_DEBUG>
@@ -50,11 +54,11 @@ target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD)
 target_link_libraries(imgui PUBLIC glad glfw)
 
 # cgltf
-target_include_directories(${PROJECT_NAME}
-                           PRIVATE ${CMAKE_SOURCE_DIR}/third_party/cgltf)
-target_sources(${PROJECT_NAME} PRIVATE third_party/cgltf/cgltf_impl.cpp)
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  target_compile_definitions(${PROJECT_NAME} PRIVATE CGLTF_NO_STDIO)
+add_library(cgltf STATIC third_party/cgltf/cgltf_impl.cpp)
+target_include_directories(cgltf
+                           PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgltf)
+if(ENGINE_CGLTF_NO_STDIO)
+  target_compile_definitions(cgltf PUBLIC CGLTF_NO_STDIO)
 endif()
 
 # includes
@@ -64,27 +68,32 @@ target_include_directories(
 
 # link
 target_link_libraries(${PROJECT_NAME} PRIVATE glad glfw glm::glm stb_image
-                                              imgui)
+                                              imgui cgltf OpenGL::GL)
 
-target_compile_options(${PROJECT_NAME} PRIVATE -Wformat=2 -Wformat-security
-                                               -Werror=format-security)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  target_compile_options(${PROJECT_NAME} PRIVATE -Wformat=2 -Wformat-security
+                                                 -Werror=format-security)
+endif()
 
-# sanitizer target_compile_options(${PROJECT_NAME} PRIVATE
-# $<$<CONFIG:Debug>:-fsanitize=address -fno-omit-frame-pointer -g> )
-# target_link_options(${PROJECT_NAME} PRIVATE
-# $<$<CONFIG:Debug>:-fsanitize=address> )
+if(ENGINE_ENABLE_ASAN AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  target_compile_options(
+    ${PROJECT_NAME}
+    PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>
+            $<$<CONFIG:Debug>:-fno-omit-frame-pointer> $<$<CONFIG:Debug>:-g>)
+  target_link_options(${PROJECT_NAME} PRIVATE
+                      $<$<CONFIG:Debug>:-fsanitize=address>)
+endif()
 
 # os specific
 if(WIN32)
-  target_link_libraries(${PROJECT_NAME} PRIVATE opengl32)
   target_compile_definitions(${PROJECT_NAME} PRIVATE PLATFORM_WINDOWS)
 elseif(APPLE)
-  target_link_libraries(
-    ${PROJECT_NAME} PRIVATE "-framework Cocoa" "-framework OpenGL"
-                            "-framework IOKit" "-framework CoreVideo")
+  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Cocoa"
+                                                "-framework IOKit"
+                                                "-framework CoreVideo")
   target_compile_definitions(${PROJECT_NAME} PRIVATE PLATFORM_MACOS)
 elseif(UNIX)
-  target_link_libraries(${PROJECT_NAME} PRIVATE GL dl pthread)
+  target_link_libraries(${PROJECT_NAME} PRIVATE dl pthread)
   target_compile_definitions(${PROJECT_NAME} PRIVATE PLATFORM_LINUX)
 endif()
 
