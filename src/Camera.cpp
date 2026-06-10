@@ -29,16 +29,18 @@ void Camera::Update(const InputManager &input, float deltaTime) {
   if (input.IsKeyPressed(GLFW_KEY_LEFT_SHIFT))
     _position -= _worldUp * velocity;
 
-  float dx, dy;
-  input.GetMouseDelta(dx, dy);
-  dx *= _mouseSensitivity;
-  dy *= _mouseSensitivity;
+  if (!input.IsCursorEnabled()) {
+    float dx, dy;
+    input.GetMouseDelta(dx, dy);
+    dx *= _mouseSensitivity;
+    dy *= _mouseSensitivity;
 
-  _yaw += dx;
-  _pitch += dy;
-  _pitch = glm::clamp(_pitch, -89.0f, 89.0f);
+    _yaw += dx;
+    _pitch += dy;
+    _pitch = glm::clamp(_pitch, -89.0f, 89.0f);
 
-  UpdateVectors();
+    UpdateVectors();
+  }
 }
 
 std::string Camera::GetDebugStringPos() const {

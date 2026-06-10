@@ -12,7 +12,8 @@ public:
   CubeMapTexture &operator=(const CubeMapTexture &) = delete;
 
   void Bind(unsigned int slot = 0) const override;
-  unsigned int GetID() const { return _ID; }
+  unsigned int GetID() const override { return _ID; }
+  unsigned int GetTarget() const override;
 
 private:
   unsigned int _ID;

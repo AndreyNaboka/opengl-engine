@@ -12,6 +12,8 @@ public:
   Texture &operator=(const Texture &) = delete;
 
   void Bind(unsigned int slot = 0) const override;
+  unsigned int GetID() const override { return _ID; }
+  unsigned int GetTarget() const override;
   int GetWidth() const { return _width; }
   int GetHeight() const { return _height; }
 

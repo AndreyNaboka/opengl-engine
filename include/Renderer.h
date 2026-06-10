@@ -5,6 +5,7 @@
 #include "Mesh.h"
 #include <glm/fwd.hpp>
 #include <glm/glm.hpp>
+#include <array>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -52,9 +53,21 @@ struct RenderCommand {
   SkinningBinding skinning;
   std::vector<TextureBinding> textures;
   glm::mat4 model = glm::mat4(1.0f);
-  RenderStateMask state = RenderState::DepthTest | RenderState::DepthWrite |
-                          RenderState::CullFace;
+  RenderStateMask state =
+      RenderState::DepthTest | RenderState::DepthWrite | RenderState::CullFace;
   DepthFunc depthFunc = DepthFunc::Less;
+};
+
+struct RendererStats {
+  uint32_t commandsSubmitted = 0;
+  uint32_t drawCalls = 0;
+  uint32_t shaderBinds = 0;
+  uint32_t textureBinds = 0;
+  uint32_t stateChanges = 0;
+  uint32_t uniformUpdates = 0;
+  uint32_t cameraUploads = 0;
+  uint32_t boneUploads = 0;
+  uint32_t triangles = 0;
 };
 
 class Renderer {
@@ -63,12 +76,38 @@ public:
   static void BeginScene(const Camera &camera);
   static void Submit(const RenderCommand &cmd);
   static void EndScene();
+  static const RendererStats &GetStats();
 
 private:
+  static constexpr unsigned int CameraBindingPoint = 0;
+  static constexpr unsigned int BonesBindingPoint = 1;
+  static constexpr size_t MaxTextureSlots = 16;
+  static constexpr size_t MaxBones = 128;
+
   struct SceneData {
     glm::mat4 view, projection;
     glm::vec3 cameraPos;
   };
+
+  struct TextureState {
+    unsigned int target = 0;
+    unsigned int id = 0;
+  };
+
   static SceneData _sceneData;
   static std::vector<RenderCommand> _cmdQueue;
+  static RendererStats _stats;
+  static RenderStateMask _currentState;
+  static DepthFunc _currentDepthFunc;
+  static unsigned int _currentShaderID;
+  static std::array<TextureState, MaxTextureSlots> _boundTextures;
+  static unsigned int _cameraUBO;
+  static unsigned int _bonesUBO;
+
+  static void ResetFrameState();
+  static void ApplyRenderState(const RenderCommand &cmd);
+  static void BindShader(const Shader &shader);
+  static void BindTexture(const BindableTexture &texture, unsigned int slot);
+  static void UploadCameraData();
+  static void UploadBoneData(const std::vector<glm::mat4> &bones);
 };

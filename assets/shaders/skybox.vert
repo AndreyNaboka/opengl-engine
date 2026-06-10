@@ -1,10 +1,13 @@
 #version 330 core
-layout (location = 0) in vec3 a_Position;
+layout(location = 0) in vec3 a_Position;
 
 out vec3 v_TexCoords;
 
-uniform mat4 u_Projection;
-uniform mat4 u_View;
+layout(std140) uniform Camera {
+  mat4 u_View;
+  mat4 u_Projection;
+  vec4 u_CameraPos;
+};
 
 void main() {
   // Убираем перенос (трансляцию) из матрицы вида

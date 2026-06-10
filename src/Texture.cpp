@@ -69,3 +69,5 @@ void Texture::Bind(unsigned int slot) const {
   glActiveTexture(GL_TEXTURE0 + slot);
   glBindTexture(GL_TEXTURE_2D, _ID);
 }
+
+unsigned int Texture::GetTarget() const { return GL_TEXTURE_2D; }

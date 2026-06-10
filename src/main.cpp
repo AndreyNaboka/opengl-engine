@@ -4,11 +4,28 @@
 #include "Renderer.h"
 #include "Level.h"
 #include <algorithm>
+#include <cstdarg>
+#include <cstdio>
 #include <string>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+
+namespace {
+void DebugText(const char *fmt, ...) {
+  char buffer[512];
+  va_list args;
+  va_start(args, fmt);
+  vsnprintf(buffer, sizeof(buffer), fmt, args);
+  va_end(args);
+
+  const ImVec2 pos = ImGui::GetCursorScreenPos();
+  ImGui::GetWindowDrawList()->AddText(ImVec2(pos.x + 1.0f, pos.y + 1.0f),
+                                      IM_COL32(0, 0, 0, 190), buffer);
+  ImGui::TextUnformatted(buffer);
+}
+} // namespace
 
 void RenderDebugText(const Camera &cam) {
   ImGui_ImplOpenGL3_NewFrame();
@@ -16,12 +33,33 @@ void RenderDebugText(const Camera &cam) {
   ImGui::NewFrame();
 
   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-  ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSizeConstraints(ImVec2(260.0f, 0.0f),
+                                      ImVec2(420.0f, 500.0f));
 
-  ImGui::Begin("Debug info");
-  ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-  ImGui::Text("%s", cam.GetDebugStringPos().c_str());
+  constexpr ImGuiWindowFlags debugWindowFlags =
+      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings;
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.02f, 0.02f, 0.03f, 0.82f));
+  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.94f, 0.96f, 1.0f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 0.65f));
+  ImGui::Begin("Debug info", nullptr, debugWindowFlags);
+  const ImGuiIO &io = ImGui::GetIO();
+  DebugText("FPS: %.1f", io.Framerate);
+  DebugText("Frame time: %.2f ms", io.DeltaTime * 1000.0f);
+  DebugText("%s", cam.GetDebugStringPos().c_str());
+  const RendererStats &stats = Renderer::GetStats();
+  ImGui::Separator();
+  DebugText("Commands: %u", stats.commandsSubmitted);
+  DebugText("Draw calls: %u", stats.drawCalls);
+  DebugText("Triangles: %u", stats.triangles);
+  DebugText("Shader binds: %u", stats.shaderBinds);
+  DebugText("Texture binds: %u", stats.textureBinds);
+  DebugText("State changes: %u", stats.stateChanges);
+  DebugText("Uniform updates: %u", stats.uniformUpdates);
+  DebugText("Camera uploads: %u", stats.cameraUploads);
+  DebugText("Bone uploads: %u", stats.boneUploads);
   ImGui::End();
+  ImGui::PopStyleColor(3);
 
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -41,7 +79,14 @@ int main() {
   // ImGui
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
-  ImGui::GetIO().FontGlobalScale = 0.75f;
+  ImGuiIO &imguiIO = ImGui::GetIO();
+  imguiIO.FontGlobalScale = 1.0f;
+  ImFontConfig fontConfig;
+  fontConfig.OversampleH = 4;
+  fontConfig.OversampleV = 4;
+  fontConfig.PixelSnapH = true;
+  imguiIO.Fonts->Clear();
+  imguiIO.Fonts->AddFontDefault(&fontConfig);
   ImGui_ImplGlfw_InitForOpenGL(wnd.GetNativeHanle(), true);
   ImGui_ImplOpenGL3_Init("#version 330 core");
 
@@ -53,6 +98,10 @@ int main() {
     lastTime = now;
 
     wnd.PollEvents();
+
+    if (input.IsKeyJustPressed(GLFW_KEY_F1)) {
+      input.SetCursorEnabled(!input.IsCursorEnabled());
+    }
 
     camera.Update(input, dt);
 

@@ -1,8 +1,6 @@
 #include "Animator.h"
 #include <algorithm>
 #include <cmath>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/string_cast.hpp>
 
 void Animator::SetAnimation(Animation *anim,
                             const std::vector<glm::mat4> &inverseBindMatrices,
@@ -23,11 +21,35 @@ void Animator::SetAnimation(Animation *anim,
   _rootParentTransforms = rootParentTransforms;
   _loop = loop;
   _time = 0.0f;
+  _channelsByBone.assign(_boneParents.size(), nullptr);
+  _childrenByBone.assign(_boneParents.size(), {});
+  _rootBones.clear();
+
   if (anim) {
     if (anim->duration <= 0.0f) {
       _currentAnim->duration = 1.0f; // чтобы избежать деления на 0
     }
     _finalBoneMatrices.resize(_boneParents.size(), glm::mat4(1.0f));
+
+    for (size_t bone = 0; bone < _boneNames.size(); ++bone) {
+      for (const auto &channel : anim->channels) {
+        if (channel.boneName == _boneNames[bone]) {
+          _channelsByBone[bone] = &channel;
+          break;
+        }
+      }
+    }
+
+    for (size_t bone = 0; bone < _boneParents.size(); ++bone) {
+      const int parent = _boneParents[bone];
+      if (parent < 0) {
+        _rootBones.push_back(bone);
+      } else if (static_cast<size_t>(parent) < _childrenByBone.size()) {
+        _childrenByBone[parent].push_back(bone);
+      }
+    }
+  } else {
+    _finalBoneMatrices.clear();
   }
 }
 
@@ -38,41 +60,27 @@ void Animator::Update(float dt) {
   if (_loop && _time > _currentAnim->duration)
     _time = std::fmod(_time, _currentAnim->duration);
 
-  std::vector<const BoneChannel *> channels(_boneParents.size(), nullptr);
-  for (size_t i = 0; i < _boneParents.size(); ++i) {
-    for (const auto &ch : _currentAnim->channels) {
-      if (ch.boneName == _boneNames[i]) {
-        channels[i] = &ch;
-        break;
-      }
-    }
-  }
-
-  for (size_t i = 0; i < _boneParents.size(); ++i) {
-    if (_boneParents[i] == -1) {
-      const glm::mat4 rootParent = i < _rootParentTransforms.size()
-                                       ? _rootParentTransforms[i]
-                                       : glm::mat4(1.0f);
-      CalculateBoneTransform(i, rootParent, channels);
-    }
+  for (size_t root : _rootBones) {
+    const glm::mat4 rootParent = root < _rootParentTransforms.size()
+                                     ? _rootParentTransforms[root]
+                                     : glm::mat4(1.0f);
+    CalculateBoneTransform(root, rootParent);
   }
 }
 
-void Animator::CalculateBoneTransform(
-    size_t boneIndex, const glm::mat4 &parentTransform,
-    const std::vector<const BoneChannel *> &channels) {
+void Animator::CalculateBoneTransform(size_t boneIndex,
+                                      const glm::mat4 &parentTransform) {
   glm::mat4 globalTransform =
-      parentTransform * TransformFromChannel(boneIndex, channels[boneIndex]);
+      parentTransform *
+      TransformFromChannel(boneIndex, _channelsByBone[boneIndex]);
 
   if (boneIndex < _boneOffsets.size())
     _finalBoneMatrices[boneIndex] = globalTransform * _boneOffsets[boneIndex];
   else
     _finalBoneMatrices[boneIndex] = globalTransform;
 
-  for (size_t child = 0; child < _boneParents.size(); ++child) {
-    if (_boneParents[child] == static_cast<int>(boneIndex)) {
-      CalculateBoneTransform(child, globalTransform, channels);
-    }
+  for (size_t child : _childrenByBone[boneIndex]) {
+    CalculateBoneTransform(child, globalTransform);
   }
 }
 

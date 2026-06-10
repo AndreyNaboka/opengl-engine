@@ -19,6 +19,8 @@ public:
   void SetUniformFloat(const std::string &name, float value) const;
   unsigned int GetID() const { return _ID; }
   int GetUniformLocation(const std::string &name) const;
+  void BindUniformBlock(const std::string &name,
+                        unsigned int bindingPoint) const;
 
 private:
   unsigned int _ID;

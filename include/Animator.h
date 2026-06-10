@@ -32,12 +32,14 @@ private:
   std::vector<glm::vec3> _bindScales;
   std::vector<glm::mat4> _rootParentTransforms;
   std::vector<glm::mat4> _finalBoneMatrices;
+  std::vector<const BoneChannel *> _channelsByBone;
+  std::vector<std::vector<size_t>> _childrenByBone;
+  std::vector<size_t> _rootBones;
   float _time = 0.0f;
   bool _loop = true;
 
   void CalculateBoneTransform(size_t boneIndex,
-                              const glm::mat4 &parentTransform,
-                              const std::vector<const BoneChannel *> &channels);
+                              const glm::mat4 &parentTransform);
   Keyframe Interpolate(const std::vector<Keyframe> &keys, float time);
   glm::mat4 TransformFromChannel(size_t boneIndex, const BoneChannel *channel);
 };

@@ -41,3 +41,5 @@ void CubeMapTexture::Bind(unsigned int slot) const {
   glActiveTexture(GL_TEXTURE0 + slot);
   glBindTexture(GL_TEXTURE_CUBE_MAP, _ID);
 }
+
+unsigned int CubeMapTexture::GetTarget() const { return GL_TEXTURE_CUBE_MAP; }

@@ -27,6 +27,9 @@ Shader::Shader(const std::string &vertexPath, const std::string &fragmentPath) {
 
   glDeleteShader(vs);
   glDeleteShader(fs);
+
+  BindUniformBlock("Camera", 0);
+  BindUniformBlock("Bones", 1);
 }
 
 Shader::~Shader() { glDeleteProgram(_ID); }
@@ -39,6 +42,14 @@ int Shader::GetUniformLocation(const std::string &name) const {
     _cache[name] = loc;
   }
   return _cache[name];
+}
+
+void Shader::BindUniformBlock(const std::string &name,
+                              unsigned int bindingPoint) const {
+  const unsigned int index = glGetUniformBlockIndex(_ID, name.c_str());
+  if (index == GL_INVALID_INDEX)
+    return;
+  glUniformBlockBinding(_ID, index, bindingPoint);
 }
 
 void Shader::SetUniformMat4(const std::string &name,
