@@ -55,7 +55,7 @@ int main() {
   groundCmd.mesh = terrain.get();
   groundCmd.shader = shader.get();
   groundCmd.textures.push_back({texture.get(), "u_Texture", 0});
-  groundCmd.cullFace = false;
+  groundCmd.state = RenderState::DepthTest | RenderState::DepthWrite;
   groundCmd.model = glm::mat4(1.0f);
 
   float lastTime = 0.0f;
@@ -77,7 +77,9 @@ int main() {
   RenderCommand cmd1;
   cmd1.mesh = modelData.mesh.get();
   cmd1.shader = modelShader.get();
-  cmd1.animator = animator.IsPlaying() ? &animator : nullptr;
+  if (animator.IsPlaying()) {
+    cmd1.skinning.boneMatrices = &animator.GetBoneMatrices();
+  }
   if (modelData.defaultMaterialIndex >= 0 &&
       modelData.defaultMaterialIndex < modelData.materials.size()) {
     cmd1.textures.push_back({modelData.materials[modelData.defaultMaterialIndex]
@@ -108,9 +110,7 @@ int main() {
   RenderCommand skyboxCmd;
   skyboxCmd.mesh = skyboxMesh.get();
   skyboxCmd.shader = skyboxShader.get();
-  skyboxCmd.depthWrite = false; // не пишем в глубину
-  skyboxCmd.depthTest = true;   // но тестируем (чтобы объекты перекрывали небо)
-  skyboxCmd.cullFace = false;   // рисуем внутреннюю сторону куба
+  skyboxCmd.state = static_cast<RenderStateMask>(RenderState::DepthTest);
   skyboxCmd.depthFunc = DepthFunc::LessEqual;
   skyboxCmd.model = glm::mat4(1.0f);
   skyboxCmd.textures.push_back({skyboxTexture.get(), "u_Skybox", 0});

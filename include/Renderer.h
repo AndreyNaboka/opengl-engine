@@ -3,9 +3,9 @@
 #include "Shader.h"
 #include "BindableTexture.h"
 #include "Mesh.h"
-#include "Animator.h"
 #include <glm/fwd.hpp>
 #include <glm/glm.hpp>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -14,21 +14,46 @@ enum class DepthFunc {
   LessEqual,
 };
 
+enum class RenderState : uint32_t {
+  None = 0,
+  DepthTest = 1 << 0,
+  DepthWrite = 1 << 1,
+  CullFace = 1 << 2,
+};
+
+using RenderStateMask = uint32_t;
+
+constexpr RenderStateMask operator|(RenderState a, RenderState b) {
+  return static_cast<RenderStateMask>(a) | static_cast<RenderStateMask>(b);
+}
+
+constexpr RenderStateMask operator|(RenderStateMask mask, RenderState flag) {
+  return mask | static_cast<RenderStateMask>(flag);
+}
+
+constexpr bool HasRenderState(RenderStateMask mask, RenderState flag) {
+  return (mask & static_cast<RenderStateMask>(flag)) != 0;
+}
+
 struct TextureBinding {
   const BindableTexture *texture = nullptr;
   std::string samplerName = "u_Texture";
   unsigned int slot = 0;
 };
 
+struct SkinningBinding {
+  const std::vector<glm::mat4> *boneMatrices = nullptr;
+  bool IsValid() const { return boneMatrices && !boneMatrices->empty(); }
+};
+
 struct RenderCommand {
   const Mesh *mesh = nullptr;
   const Shader *shader = nullptr;
-  const Animator *animator = nullptr;
+  SkinningBinding skinning;
   std::vector<TextureBinding> textures;
   glm::mat4 model = glm::mat4(1.0f);
-  bool depthWrite = true;
-  bool depthTest = true;
-  bool cullFace = true;
+  RenderStateMask state = RenderState::DepthTest | RenderState::DepthWrite |
+                          RenderState::CullFace;
   DepthFunc depthFunc = DepthFunc::Less;
 };
 

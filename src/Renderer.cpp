@@ -37,11 +37,11 @@ void Renderer::EndScene() {
     if (cmd.depthFunc == DepthFunc::LessEqual) {
       glDepthFunc(GL_LEQUAL);
     }
-    if (!cmd.depthTest)
+    if (!HasRenderState(cmd.state, RenderState::DepthTest))
       glDisable(GL_DEPTH_TEST);
-    if (!cmd.depthWrite)
+    if (!HasRenderState(cmd.state, RenderState::DepthWrite))
       glDepthMask(GL_FALSE);
-    if (!cmd.cullFace)
+    if (!HasRenderState(cmd.state, RenderState::CullFace))
       glDisable(GL_CULL_FACE);
 
     cmd.shader->Bind();
@@ -56,12 +56,9 @@ void Renderer::EndScene() {
       binding.texture->Bind(binding.slot);
       cmd.shader->SetUniformInt(binding.samplerName, binding.slot);
     }
-    const auto *animator = cmd.animator;
-    const bool hasSkinning = animator && !animator->GetBoneMatrices().empty();
-
-    if (hasSkinning) {
+    if (cmd.skinning.IsValid()) {
       cmd.shader->SetUniformInt("u_Skinned", 1);
-      const auto &bones = animator->GetBoneMatrices();
+      const auto &bones = *cmd.skinning.boneMatrices;
       if (!bones.empty()) {
         int loc = cmd.shader->GetUniformLocation("u_BoneMatrices");
         if (loc != -1) {
@@ -79,11 +76,11 @@ void Renderer::EndScene() {
     if (cmd.depthFunc == DepthFunc::LessEqual) {
       glDepthFunc(GL_LESS);
     }
-    if (!cmd.depthTest)
+    if (!HasRenderState(cmd.state, RenderState::DepthTest))
       glEnable(GL_DEPTH_TEST);
-    if (!cmd.depthWrite)
+    if (!HasRenderState(cmd.state, RenderState::DepthWrite))
       glDepthMask(GL_TRUE);
-    if (!cmd.cullFace)
+    if (!HasRenderState(cmd.state, RenderState::CullFace))
       glEnable(GL_CULL_FACE);
   }
   _cmdQueue.clear();
