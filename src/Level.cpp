@@ -2,9 +2,31 @@
 #include "Sky.h"
 #include "TerrainGenerator.h"
 #include <array>
+#include <cmath>
 #include <string>
 
 #include <glm/gtc/matrix_transform.hpp>
+
+namespace {
+constexpr float kEnemyScale = 6.0f;
+constexpr float kEnemyGroundOffsetY = 2.0f;
+constexpr float kEnemyOrbitRadius = 18.0f;
+constexpr float kEnemyOrbitSpeed = 0.65f;
+
+glm::mat4 EnemyOrbitTransform(float angle) {
+  const glm::vec3 position(std::cos(angle) * kEnemyOrbitRadius,
+                           kEnemyGroundOffsetY,
+                           std::sin(angle) * kEnemyOrbitRadius);
+
+  const glm::mat4 translate = glm::translate(glm::mat4(1.0f), position);
+  const glm::mat4 rotate =
+      glm::rotate(glm::mat4(1.0f), -angle, glm::vec3(0.0f, 1.0f, 0.0f));
+  const glm::mat4 scale =
+      glm::scale(glm::mat4(1.0f), glm::vec3(kEnemyScale));
+
+  return translate * rotate * scale;
+}
+} // namespace
 
 Level::Level() {
   _terrainShader = std::make_unique<Shader>("assets/shaders/terrain.vert",
@@ -44,10 +66,7 @@ Level::Level() {
          "u_Texture", 0});
   }
 
-  const glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(6.0f));
-  const glm::mat4 translate =
-      glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, -5.0f));
-  _modelCmd.model = translate * scale;
+  _modelCmd.model = EnemyOrbitTransform(_enemyOrbitAngle);
 
   const std::array<std::string, 6> skyboxFaces = {
       "assets/textures/skybox/space_rt.png",
@@ -69,7 +88,12 @@ Level::Level() {
   _skyboxCmd.textures.push_back({_skyboxTexture.get(), "u_Skybox", 0});
 }
 
-void Level::Update(float dt) { _animator.Update(dt); }
+void Level::Update(float dt) {
+  _animator.Update(dt);
+
+  _enemyOrbitAngle += dt * kEnemyOrbitSpeed;
+  _modelCmd.model = EnemyOrbitTransform(_enemyOrbitAngle);
+}
 
 void Level::Render() const {
   Renderer::Submit(_skyboxCmd);

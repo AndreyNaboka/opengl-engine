@@ -26,6 +26,7 @@ private:
   std::unique_ptr<Shader> _modelShader;
   Animator _animator;
   RenderCommand _modelCmd;
+  float _enemyOrbitAngle = 0.0f;
 
   std::shared_ptr<CubeMapTexture> _skyboxTexture;
   std::shared_ptr<Shader> _skyboxShader;
