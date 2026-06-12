@@ -12,6 +12,51 @@
 
 static const char *GltfResultToString(cgltf_result res);
 
+static bool ReadAccessorVec2(const cgltf_accessor *accessor, size_t index,
+                             glm::vec2 &value) {
+  float components[2] = {0.0f, 0.0f};
+  if (!accessor ||
+      !cgltf_accessor_read_float(accessor, index, components, 2)) {
+    return false;
+  }
+  value = glm::vec2(components[0], components[1]);
+  return true;
+}
+
+static bool ReadAccessorVec3(const cgltf_accessor *accessor, size_t index,
+                             glm::vec3 &value) {
+  float components[3] = {0.0f, 0.0f, 0.0f};
+  if (!accessor ||
+      !cgltf_accessor_read_float(accessor, index, components, 3)) {
+    return false;
+  }
+  value = glm::vec3(components[0], components[1], components[2]);
+  return true;
+}
+
+static bool ReadAccessorVec4(const cgltf_accessor *accessor, size_t index,
+                             glm::vec4 &value) {
+  float components[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  if (!accessor ||
+      !cgltf_accessor_read_float(accessor, index, components, 4)) {
+    return false;
+  }
+  value = glm::vec4(components[0], components[1], components[2], components[3]);
+  return true;
+}
+
+static bool ReadAccessorJoints(const cgltf_accessor *accessor, size_t index,
+                               int (&joints)[4]) {
+  cgltf_uint components[4] = {0, 0, 0, 0};
+  if (!accessor || !cgltf_accessor_read_uint(accessor, index, components, 4)) {
+    return false;
+  }
+  for (size_t i = 0; i < 4; ++i) {
+    joints[i] = static_cast<int>(components[i]);
+  }
+  return true;
+}
+
 std::shared_ptr<Texture>
 GltfLoader::LoadTextureFromCgltf(const cgltf_image *image,
                                  const std::string &basePath) {
@@ -115,6 +160,11 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   }
 
   const cgltf_mesh *targetMesh = &data->meshes[0];
+  if (targetMesh->primitives_count == 0) {
+    LogInfo("[GltfLoader] Mesh has no primitives");
+    cgltf_free(data);
+    return result;
+  }
   const cgltf_primitive &prim = targetMesh->primitives[0];
 
   if (prim.material) {
@@ -201,7 +251,7 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     auto anim = std::make_shared<Animation>();
     const cgltf_animation &cgAnim = data->animations[a];
     anim->duration = 0.0f;
-    anim->name = std::string(cgAnim.name);
+    anim->name = cgAnim.name ? std::string(cgAnim.name) : "";
 
     // First pass: fill boneIndexMap from channels
     for (size_t c = 0; c < cgAnim.channels_count; ++c) {
@@ -323,91 +373,43 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
   size_t vCount = posAcc->count;
   LOG_DEBUG("[GltfLoader] Vertex count: " + std::to_string(vCount));
 
-  // Прямое чтение позиций из буфера
   std::vector<glm::vec3> positions(vCount);
-  if (posAcc->buffer_view && posAcc->buffer_view->buffer->data) {
-    const uint8_t *bufferData =
-        static_cast<const uint8_t *>(posAcc->buffer_view->buffer->data);
-    size_t offset = posAcc->offset + posAcc->buffer_view->offset;
-    size_t stride = posAcc->buffer_view->stride ? posAcc->buffer_view->stride
-                                                : sizeof(float) * 3;
-    for (size_t i = 0; i < vCount; ++i) {
-      const float *pos =
-          reinterpret_cast<const float *>(bufferData + offset + i * stride);
-      positions[i] = glm::vec3(pos[0], pos[1], pos[2]);
+  for (size_t i = 0; i < vCount; ++i) {
+    if (!ReadAccessorVec3(posAcc, i, positions[i])) {
+      LogInfo("[GltfLoader] ERROR: Failed to read POSITION attribute!");
+      cgltf_free(data);
+      return result;
     }
-  } else {
-    LogInfo("[GltfLoader] ERROR: No buffer data for positions!");
-    cgltf_free(data);
-    return result;
   }
 
-  // Прямое чтение нормалей
   std::vector<glm::vec3> normals(vCount, glm::vec3(0.0f, 1.0f, 0.0f));
-  if (normAcc && normAcc->buffer_view && normAcc->buffer_view->buffer->data) {
-    const uint8_t *bufferData =
-        static_cast<const uint8_t *>(normAcc->buffer_view->buffer->data);
-    size_t offset = normAcc->offset + normAcc->buffer_view->offset;
-    size_t stride = normAcc->buffer_view->stride ? normAcc->buffer_view->stride
-                                                 : sizeof(float) * 3;
-
+  if (normAcc) {
     for (size_t i = 0; i < vCount; ++i) {
-      const float *norm =
-          reinterpret_cast<const float *>(bufferData + offset + i * stride);
-      normals[i] = glm::vec3(norm[0], norm[1], norm[2]);
+      ReadAccessorVec3(normAcc, i, normals[i]);
     }
   }
 
-  // Чтение UV координат
   std::vector<glm::vec2> uvs(vCount, glm::vec2(0.0f));
-  if (uvAcc && uvAcc->buffer_view && uvAcc->buffer_view->buffer->data) {
-    const uint8_t *bufferData =
-        static_cast<const uint8_t *>(uvAcc->buffer_view->buffer->data);
-    size_t offset = uvAcc->offset + uvAcc->buffer_view->offset;
-    size_t stride = uvAcc->buffer_view->stride ? uvAcc->buffer_view->stride
-                                               : sizeof(float) * 2;
+  if (uvAcc) {
     LogInfo("[GltfLoader] Reading UVs");
     for (size_t i = 0; i < vCount; ++i) {
-      const float *uv =
-          reinterpret_cast<const float *>(bufferData + offset + i * stride);
-      uvs[i] = glm::vec2(uv[0], uv[1]);
+      ReadAccessorVec2(uvAcc, i, uvs[i]);
     }
   }
 
-  // Чтение индексов
   std::vector<uint32_t> indices;
   if (prim.indices && prim.indices->count > 0) {
     size_t iCount = prim.indices->count;
     indices.resize(iCount);
-
     const cgltf_accessor *idxAcc = prim.indices;
-    if (idxAcc->buffer_view && idxAcc->buffer_view->buffer->data) {
-      const uint8_t *bufferData =
-          static_cast<const uint8_t *>(idxAcc->buffer_view->buffer->data);
-      size_t offset = idxAcc->offset + idxAcc->buffer_view->offset;
-      size_t stride =
-          idxAcc->buffer_view->stride
-              ? idxAcc->buffer_view->stride
-              : (idxAcc->component_type == cgltf_component_type_r_16u ? 2 : 4);
-      if (idxAcc->component_type == cgltf_component_type_r_16u) {
-        for (size_t i = 0; i < iCount; ++i) {
-          const uint16_t *idx = reinterpret_cast<const uint16_t *>(
-              bufferData + offset + i * stride);
-          indices[i] = static_cast<uint32_t>(*idx);
-        }
-      } else {
-        for (size_t i = 0; i < iCount; ++i) {
-          const uint32_t *idx = reinterpret_cast<const uint32_t *>(
-              bufferData + offset + i * stride);
-          indices[i] = *idx;
-        }
-      }
+    for (size_t i = 0; i < iCount; ++i) {
+      indices[i] = static_cast<uint32_t>(cgltf_accessor_read_index(idxAcc, i));
+    }
 
-      LogInfo("[GltfLoader] Indices count: " + std::to_string(iCount));
-      for (size_t i = 0; i < std::min(iCount, (size_t)12); ++i) {
-        LOG_DEBUG("[GltfLoader] Index " + std::to_string(i) + ": " +
-                  std::to_string(indices[i]));
-      }
+    LogInfo("[GltfLoader] Indices count: " + std::to_string(iCount));
+    for (size_t i = 0; i < std::min(iCount, (size_t)12); ++i) {
+      LOG_DEBUG("[GltfLoader] Index " + std::to_string(i) + ": " +
+                std::to_string(indices[i]));
     }
   }
 
@@ -439,33 +441,12 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
       }
     }
 
-    std::vector<glm::vec4> weights(vCount);
-    for (size_t i = 0; i < vCount; ++i)
-      cgltf_accessor_read_float(weightsAcc, i, glm::value_ptr(weights[i]), 4);
-
-    if (jointsAcc->buffer_view && jointsAcc->buffer_view->buffer->data) {
-      const uint8_t *buf =
-          static_cast<const uint8_t *>(jointsAcc->buffer_view->buffer->data);
-      size_t offset = jointsAcc->offset + jointsAcc->buffer_view->offset;
-      size_t stride = jointsAcc->buffer_view->stride
-                          ? jointsAcc->buffer_view->stride
-                          : 4; // 4 байта на 4 индекса (если uint8)
-      for (size_t i = 0; i < vCount; ++i) {
-        const uint8_t *ptr = buf + offset + i * stride;
-        if (jointsAcc->component_type == cgltf_component_type_r_16u) {
-          const uint16_t *j16 = reinterpret_cast<const uint16_t *>(ptr);
-          for (int j = 0; j < 4; ++j)
-            skinnedVertices[i].boneIds[j] = static_cast<int>(j16[j]);
-        } else if (jointsAcc->component_type == cgltf_component_type_r_8u) {
-          for (int j = 0; j < 4; ++j)
-            skinnedVertices[i].boneIds[j] = static_cast<int>(ptr[j]);
-        } else {
-          const uint32_t *j32 = reinterpret_cast<const uint32_t *>(ptr);
-          for (int j = 0; j < 4; ++j)
-            skinnedVertices[i].boneIds[j] = static_cast<int>(j32[j]);
-        }
-        for (int j = 0; j < 4; ++j)
-          skinnedVertices[i].boneWeights[j] = weights[i][j];
+    for (size_t i = 0; i < vCount; ++i) {
+      glm::vec4 weights(0.0f);
+      ReadAccessorVec4(weightsAcc, i, weights);
+      ReadAccessorJoints(jointsAcc, i, skinnedVertices[i].boneIds);
+      for (int j = 0; j < 4; ++j) {
+        skinnedVertices[i].boneWeights[j] = weights[j];
       }
     }
 
