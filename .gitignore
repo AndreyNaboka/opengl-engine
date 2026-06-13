@@ -5,6 +5,7 @@ cmake-build-release/
 bin/
 obj/
 .cache/
+docs/
 
 # Бинарные файлы
 *.exe

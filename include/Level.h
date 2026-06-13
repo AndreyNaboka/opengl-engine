@@ -4,16 +4,22 @@
 #include "CubeMapTexture.h"
 #include "GltfLoader.h"
 #include "Mesh.h"
+#include "PhysicsWorld.h"
 #include "Renderer.h"
 #include "Shader.h"
 #include "Texture.h"
+#include <Jolt/Physics/Body/BodyID.h>
 #include <memory>
+
+class Camera;
+class InputManager;
 
 class Level {
 public:
   Level();
+  ~Level();
 
-  void Update(float dt);
+  void Update(const InputManager &input, Camera &camera, float dt);
   void Render() const;
 
 private:
@@ -32,4 +38,12 @@ private:
   std::shared_ptr<Shader> _skyboxShader;
   std::shared_ptr<Mesh> _skyboxMesh;
   RenderCommand _skyboxCmd;
+
+  PhysicsWorld _physicsWorld;
+  JPH::BodyID _groundBody;
+  JPH::BodyID _playerBody;
+  bool _playerGrounded = false;
+
+  void UpdatePlayer(const InputManager &input, const Camera &camera);
+  glm::vec3 GetPlayerEyePosition();
 };

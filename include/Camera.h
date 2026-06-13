@@ -11,12 +11,15 @@ public:
          float aspect = 16.0f / 9.0f);
 
   void Update(const InputManager &input, float deltaTime);
+  void UpdateLook(const InputManager &input);
   glm::mat4 GetViewMatrix() const;
   glm::mat4 GetProjectionMatrix() const;
 
   const glm::vec3 &GetPosition() const { return _position; }
   const glm::vec3 &GetFront() const { return _front; }
+  const glm::vec3 &GetRight() const { return _right; }
 
+  void SetPosition(const glm::vec3 &position) { _position = position; }
   void SetAspect(const float aspect) { _aspect = aspect; }
   std::string GetDebugStringPos() const;
 

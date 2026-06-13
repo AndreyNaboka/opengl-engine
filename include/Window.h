@@ -15,6 +15,7 @@ public:
   float GetHeight() const;
   void Close() const;
   GLFWwindow *GetNativeHanle() const { return _wnd; }
+  bool IsValid() const { return _wnd != nullptr; }
   int GetFramebufferWidth() const;
   int GetFramebufferHeight() const;
   float GetAspectRatio() const;

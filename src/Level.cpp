@@ -1,10 +1,14 @@
 #include "Level.h"
+#include "Camera.h"
+#include "InputManager.h"
 #include "Sky.h"
 #include "TerrainGenerator.h"
+#include <Jolt/Physics/Body/BodyInterface.h>
 #include <array>
 #include <cmath>
 #include <string>
 
+#include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace {
@@ -12,6 +16,16 @@ constexpr float kEnemyScale = 6.0f;
 constexpr float kEnemyGroundOffsetY = 2.0f;
 constexpr float kEnemyOrbitRadius = 18.0f;
 constexpr float kEnemyOrbitSpeed = 0.65f;
+constexpr float kGroundSize = 200.0f;
+constexpr float kGroundThickness = 1.0f;
+constexpr float kPlayerCapsuleHalfHeight = 0.9f;
+constexpr float kPlayerCapsuleRadius = 0.35f;
+constexpr float kPlayerStandingCenterY =
+    kPlayerCapsuleHalfHeight + kPlayerCapsuleRadius;
+constexpr float kPlayerEyeOffsetY = 7.45f;
+constexpr float kPlayerMoveSpeed = 10.0f;
+constexpr float kPlayerJumpSpeed = 10.5f;
+constexpr float kGroundedTolerance = 0.08f;
 
 glm::mat4 EnemyOrbitTransform(float angle) {
   const glm::vec3 position(std::cos(angle) * kEnemyOrbitRadius,
@@ -39,6 +53,14 @@ Level::Level() {
   _groundCmd.textures.push_back({_groundTexture.get(), "u_Texture", 0});
   _groundCmd.state = RenderState::DepthTest | RenderState::DepthWrite;
   _groundCmd.model = glm::mat4(1.0f);
+
+  _groundBody = _physicsWorld.CreateStaticBox(
+      glm::vec3(0.0f, -kGroundThickness * 0.5f, 0.0f),
+      glm::vec3(kGroundSize * 0.5f, kGroundThickness * 0.5f,
+                kGroundSize * 0.5f));
+  _playerBody = _physicsWorld.CreatePlayerCapsule(
+      glm::vec3(0.0f, kPlayerStandingCenterY, 25.0f),
+      kPlayerCapsuleHalfHeight, kPlayerCapsuleRadius);
 
   _modelData = GltfLoader::Load("assets/models/enemy.glb");
   _modelShader = std::make_unique<Shader>("assets/shaders/skinned.vert",
@@ -88,7 +110,17 @@ Level::Level() {
   _skyboxCmd.textures.push_back({_skyboxTexture.get(), "u_Skybox", 0});
 }
 
-void Level::Update(float dt) {
+Level::~Level() {
+  _physicsWorld.DestroyBody(_playerBody);
+  _physicsWorld.DestroyBody(_groundBody);
+}
+
+void Level::Update(const InputManager &input, Camera &camera, float dt) {
+  camera.UpdateLook(input);
+  UpdatePlayer(input, camera);
+  _physicsWorld.Step(dt);
+  camera.SetPosition(GetPlayerEyePosition());
+
   _animator.Update(dt);
 
   _enemyOrbitAngle += dt * kEnemyOrbitSpeed;
@@ -99,4 +131,55 @@ void Level::Render() const {
   Renderer::Submit(_skyboxCmd);
   Renderer::Submit(_groundCmd);
   Renderer::Submit(_modelCmd);
+}
+
+void Level::UpdatePlayer(const InputManager &input, const Camera &camera) {
+  JPH::BodyInterface &bodyInterface = _physicsWorld.GetBodyInterface();
+  const JPH::RVec3 position = bodyInterface.GetCenterOfMassPosition(_playerBody);
+  const JPH::Vec3 currentVelocity = bodyInterface.GetLinearVelocity(_playerBody);
+
+  glm::vec3 forward(camera.GetFront().x, 0.0f, camera.GetFront().z);
+  if (glm::dot(forward, forward) > 0.0001f)
+    forward = glm::normalize(forward);
+
+  glm::vec3 right(camera.GetRight().x, 0.0f, camera.GetRight().z);
+  if (glm::dot(right, right) > 0.0001f)
+    right = glm::normalize(right);
+
+  glm::vec3 wishDir(0.0f);
+  if (input.IsKeyPressed(GLFW_KEY_W))
+    wishDir += forward;
+  if (input.IsKeyPressed(GLFW_KEY_S))
+    wishDir -= forward;
+  if (input.IsKeyPressed(GLFW_KEY_D))
+    wishDir += right;
+  if (input.IsKeyPressed(GLFW_KEY_A))
+    wishDir -= right;
+
+  if (glm::dot(wishDir, wishDir) > 0.0001f)
+    wishDir = glm::normalize(wishDir);
+
+  const bool closeToGround =
+      position.GetY() <= kPlayerStandingCenterY + kGroundedTolerance;
+  _playerGrounded = closeToGround && currentVelocity.GetY() <= 0.5f;
+
+  float verticalVelocity = currentVelocity.GetY();
+  if (_playerGrounded && input.IsKeyJustPressed(GLFW_KEY_SPACE)) {
+    verticalVelocity = kPlayerJumpSpeed;
+    _playerGrounded = false;
+  }
+
+  const glm::vec3 horizontalVelocity = wishDir * kPlayerMoveSpeed;
+  bodyInterface.SetLinearVelocity(
+      _playerBody, JPH::Vec3(horizontalVelocity.x, verticalVelocity,
+                             horizontalVelocity.z));
+  bodyInterface.ActivateBody(_playerBody);
+}
+
+glm::vec3 Level::GetPlayerEyePosition() {
+  const JPH::RVec3 position =
+      _physicsWorld.GetBodyInterface().GetCenterOfMassPosition(_playerBody);
+  return glm::vec3(static_cast<float>(position.GetX()),
+                   static_cast<float>(position.GetY()) + kPlayerEyeOffsetY,
+                   static_cast<float>(position.GetZ()));
 }

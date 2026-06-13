@@ -67,6 +67,10 @@ void RenderDebugText(const Camera &cam) {
 
 int main() {
   Window wnd(1200, 800, std::string("World"));
+  if (!wnd.IsValid()) {
+    return 1;
+  }
+
   InputManager input;
   input.Init(wnd.GetNativeHanle());
 
@@ -103,8 +107,6 @@ int main() {
       input.SetCursorEnabled(!input.IsCursorEnabled());
     }
 
-    camera.Update(input, dt);
-
     if (input.IsKeyPressed(GLFW_KEY_ESCAPE)) {
       wnd.Close();
       continue;
@@ -115,7 +117,7 @@ int main() {
     glViewport(0, 0, fbW, fbH);
     camera.SetAspect(static_cast<float>(fbW) / static_cast<float>(fbH));
 
-    level.Update(dt);
+    level.Update(input, camera, dt);
 
     Renderer::BeginScene(camera);
     level.Render();

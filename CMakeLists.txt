@@ -12,6 +12,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 option(ENGINE_ENABLE_ASAN "Enable AddressSanitizer for Debug builds" OFF)
 option(ENGINE_CGLTF_NO_STDIO "Build cgltf without stdio helpers" OFF)
 
+include(FetchContent)
+
 # stb_image
 add_library(stb_image INTERFACE)
 target_include_directories(
@@ -25,6 +27,18 @@ target_include_directories(glad PUBLIC third_party/glad/include)
 find_package(glfw3 3.3 REQUIRED)
 find_package(glm REQUIRED)
 find_package(OpenGL REQUIRED)
+
+# Jolt Physics
+set(OVERRIDE_CXX_FLAGS OFF CACHE BOOL "" FORCE)
+set(ENABLE_ALL_WARNINGS OFF CACHE BOOL "" FORCE)
+set(INTERPROCEDURAL_OPTIMIZATION OFF CACHE BOOL "" FORCE)
+set(ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(
+  JoltPhysics
+  GIT_REPOSITORY https://github.com/jrouwe/JoltPhysics.git
+  GIT_TAG v5.5.0
+  SOURCE_SUBDIR Build)
+FetchContent_MakeAvailable(JoltPhysics)
 
 # sources
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
@@ -68,7 +82,7 @@ target_include_directories(
 
 # link
 target_link_libraries(${PROJECT_NAME} PRIVATE glad glfw glm::glm stb_image
-                                              imgui cgltf OpenGL::GL)
+                                              imgui cgltf Jolt OpenGL::GL)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
   target_compile_options(${PROJECT_NAME} PRIVATE -Wformat=2 -Wformat-security
