@@ -21,6 +21,7 @@ public:
 
   void Update(const InputManager &input, Camera &camera, float dt);
   void Render() const;
+  bool IsFreeCameraMode() const { return _freeCameraMode; }
 
 private:
   std::unique_ptr<Shader> _terrainShader;
@@ -43,7 +44,9 @@ private:
   JPH::BodyID _groundBody;
   JPH::BodyID _playerBody;
   bool _playerGrounded = false;
+  bool _freeCameraMode = false;
 
   void UpdatePlayer(const InputManager &input, const Camera &camera);
+  void SyncPlayerToCamera(const Camera &camera);
   glm::vec3 GetPlayerEyePosition();
 };

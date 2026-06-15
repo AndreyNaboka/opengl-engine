@@ -27,7 +27,7 @@ void DebugText(const char *fmt, ...) {
 }
 } // namespace
 
-void RenderDebugText(const Camera &cam) {
+void RenderDebugText(const Camera &cam, bool freeCameraMode) {
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
@@ -46,6 +46,7 @@ void RenderDebugText(const Camera &cam) {
   const ImGuiIO &io = ImGui::GetIO();
   DebugText("FPS: %.1f", io.Framerate);
   DebugText("Frame time: %.2f ms", io.DeltaTime * 1000.0f);
+  DebugText("Camera mode: %s", freeCameraMode ? "Free flight" : "Physics");
   DebugText("%s", cam.GetDebugStringPos().c_str());
   const RendererStats &stats = Renderer::GetStats();
   ImGui::Separator();
@@ -123,7 +124,7 @@ int main() {
     level.Render();
     Renderer::EndScene();
 
-    RenderDebugText(camera);
+    RenderDebugText(camera, level.IsFreeCameraMode());
 
     wnd.SwapBuffers();
 

@@ -4,6 +4,7 @@
 #include "Sky.h"
 #include "TerrainGenerator.h"
 #include <Jolt/Physics/Body/BodyInterface.h>
+#include <Jolt/Physics/EActivation.h>
 #include <array>
 #include <cmath>
 #include <string>
@@ -116,10 +117,21 @@ Level::~Level() {
 }
 
 void Level::Update(const InputManager &input, Camera &camera, float dt) {
-  camera.UpdateLook(input);
-  UpdatePlayer(input, camera);
-  _physicsWorld.Step(dt);
-  camera.SetPosition(GetPlayerEyePosition());
+  if (input.IsKeyJustPressed(GLFW_KEY_F2)) {
+    _freeCameraMode = !_freeCameraMode;
+    if (!_freeCameraMode) {
+      SyncPlayerToCamera(camera);
+    }
+  }
+
+  if (_freeCameraMode) {
+    camera.Update(input, dt);
+  } else {
+    camera.UpdateLook(input);
+    UpdatePlayer(input, camera);
+    _physicsWorld.Step(dt);
+    camera.SetPosition(GetPlayerEyePosition());
+  }
 
   _animator.Update(dt);
 
@@ -174,6 +186,20 @@ void Level::UpdatePlayer(const InputManager &input, const Camera &camera) {
       _playerBody, JPH::Vec3(horizontalVelocity.x, verticalVelocity,
                              horizontalVelocity.z));
   bodyInterface.ActivateBody(_playerBody);
+}
+
+void Level::SyncPlayerToCamera(const Camera &camera) {
+  glm::vec3 playerPosition = camera.GetPosition();
+  playerPosition.y = std::max(playerPosition.y - kPlayerEyeOffsetY,
+                              kPlayerStandingCenterY);
+
+  JPH::BodyInterface &bodyInterface = _physicsWorld.GetBodyInterface();
+  bodyInterface.SetPositionAndRotation(
+      _playerBody,
+      JPH::RVec3(playerPosition.x, playerPosition.y, playerPosition.z),
+      JPH::Quat::sIdentity(), JPH::EActivation::Activate);
+  bodyInterface.SetLinearVelocity(_playerBody, JPH::Vec3::sZero());
+  _playerGrounded = false;
 }
 
 glm::vec3 Level::GetPlayerEyePosition() {
