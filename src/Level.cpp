@@ -109,6 +109,9 @@ Level::Level() {
   _skyboxCmd.depthFunc = DepthFunc::LessEqual;
   _skyboxCmd.model = glm::mat4(1.0f);
   _skyboxCmd.textures.push_back({_skyboxTexture.get(), "u_Skybox", 0});
+
+  _groundCmd.textures.push_back({_skyboxTexture.get(), "u_FogSkybox", 1});
+  _modelCmd.textures.push_back({_skyboxTexture.get(), "u_FogSkybox", 1});
 }
 
 Level::~Level() {
