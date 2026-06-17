@@ -41,12 +41,13 @@ private:
   RenderCommand _skyboxCmd;
 
   PhysicsWorld _physicsWorld;
-  JPH::BodyID _groundBody;
   JPH::BodyID _playerBody;
   bool _playerGrounded = false;
   bool _freeCameraMode = false;
 
   void UpdatePlayer(const InputManager &input, const Camera &camera);
+  void ConstrainPlayerToTerrain();
   void SyncPlayerToCamera(const Camera &camera);
+  float GetTerrainHeight(float x, float z) const;
   glm::vec3 GetPlayerEyePosition();
 };

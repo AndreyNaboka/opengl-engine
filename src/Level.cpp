@@ -5,6 +5,7 @@
 #include "TerrainGenerator.h"
 #include <Jolt/Physics/Body/BodyInterface.h>
 #include <Jolt/Physics/EActivation.h>
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <string>
@@ -17,8 +18,7 @@ constexpr float kEnemyScale = 6.0f;
 constexpr float kEnemyGroundOffsetY = 2.0f;
 constexpr float kEnemyOrbitRadius = 18.0f;
 constexpr float kEnemyOrbitSpeed = 0.65f;
-constexpr float kGroundSize = 200.0f;
-constexpr float kGroundThickness = 1.0f;
+constexpr float kGroundSize = 420.0f;
 constexpr float kPlayerCapsuleHalfHeight = 0.9f;
 constexpr float kPlayerCapsuleRadius = 0.35f;
 constexpr float kPlayerStandingCenterY =
@@ -47,7 +47,7 @@ Level::Level() {
   _terrainShader = std::make_unique<Shader>("assets/shaders/terrain.vert",
                                             "assets/shaders/common.frag");
   _groundTexture = std::make_unique<Texture>("assets/textures/grass.png");
-  _terrainMesh = GenerateGrid(200.0f, 200.0f, 60, 60, 15.0f);
+  _terrainMesh = GenerateGrid(kGroundSize, kGroundSize, 160, 160, 32.0f);
 
   _groundCmd.mesh = _terrainMesh.get();
   _groundCmd.shader = _terrainShader.get();
@@ -55,12 +55,12 @@ Level::Level() {
   _groundCmd.state = RenderState::DepthTest | RenderState::DepthWrite;
   _groundCmd.model = glm::mat4(1.0f);
 
-  _groundBody = _physicsWorld.CreateStaticBox(
-      glm::vec3(0.0f, -kGroundThickness * 0.5f, 0.0f),
-      glm::vec3(kGroundSize * 0.5f, kGroundThickness * 0.5f,
-                kGroundSize * 0.5f));
+  const glm::vec3 playerStart(0.0f, 0.0f, 25.0f);
   _playerBody = _physicsWorld.CreatePlayerCapsule(
-      glm::vec3(0.0f, kPlayerStandingCenterY, 25.0f),
+      glm::vec3(playerStart.x,
+                GetTerrainHeight(playerStart.x, playerStart.z) +
+                    kPlayerStandingCenterY,
+                playerStart.z),
       kPlayerCapsuleHalfHeight, kPlayerCapsuleRadius);
 
   _modelData = GltfLoader::Load("assets/models/enemy.glb");
@@ -116,7 +116,6 @@ Level::Level() {
 
 Level::~Level() {
   _physicsWorld.DestroyBody(_playerBody);
-  _physicsWorld.DestroyBody(_groundBody);
 }
 
 void Level::Update(const InputManager &input, Camera &camera, float dt) {
@@ -133,6 +132,7 @@ void Level::Update(const InputManager &input, Camera &camera, float dt) {
     camera.UpdateLook(input);
     UpdatePlayer(input, camera);
     _physicsWorld.Step(dt);
+    ConstrainPlayerToTerrain();
     camera.SetPosition(GetPlayerEyePosition());
   }
 
@@ -174,14 +174,19 @@ void Level::UpdatePlayer(const InputManager &input, const Camera &camera) {
   if (glm::dot(wishDir, wishDir) > 0.0001f)
     wishDir = glm::normalize(wishDir);
 
-  const bool closeToGround =
-      position.GetY() <= kPlayerStandingCenterY + kGroundedTolerance;
+  const float groundY = GetTerrainHeight(static_cast<float>(position.GetX()),
+                                         static_cast<float>(position.GetZ()));
+  const float playerGroundCenterY = groundY + kPlayerStandingCenterY;
+  const bool closeToGround = position.GetY() <=
+                             playerGroundCenterY + kGroundedTolerance;
   _playerGrounded = closeToGround && currentVelocity.GetY() <= 0.5f;
 
   float verticalVelocity = currentVelocity.GetY();
   if (_playerGrounded && input.IsKeyJustPressed(GLFW_KEY_SPACE)) {
     verticalVelocity = kPlayerJumpSpeed;
     _playerGrounded = false;
+  } else if (_playerGrounded) {
+    verticalVelocity = 0.0f;
   }
 
   const glm::vec3 horizontalVelocity = wishDir * kPlayerMoveSpeed;
@@ -191,10 +196,37 @@ void Level::UpdatePlayer(const InputManager &input, const Camera &camera) {
   bodyInterface.ActivateBody(_playerBody);
 }
 
+void Level::ConstrainPlayerToTerrain() {
+  JPH::BodyInterface &bodyInterface = _physicsWorld.GetBodyInterface();
+  const JPH::RVec3 position = bodyInterface.GetCenterOfMassPosition(_playerBody);
+  const JPH::Vec3 velocity = bodyInterface.GetLinearVelocity(_playerBody);
+
+  const float groundY = GetTerrainHeight(static_cast<float>(position.GetX()),
+                                         static_cast<float>(position.GetZ()));
+  const float playerGroundCenterY = groundY + kPlayerStandingCenterY;
+  const bool shouldSnapToGround =
+      position.GetY() <= playerGroundCenterY || _playerGrounded;
+
+  if (!shouldSnapToGround)
+    return;
+
+  bodyInterface.SetPositionAndRotation(
+      _playerBody,
+      JPH::RVec3(position.GetX(), playerGroundCenterY, position.GetZ()),
+      JPH::Quat::sIdentity(), JPH::EActivation::Activate);
+  bodyInterface.SetLinearVelocity(
+      _playerBody, JPH::Vec3(velocity.GetX(), std::max(0.0f, velocity.GetY()),
+                             velocity.GetZ()));
+  _playerGrounded = true;
+}
+
 void Level::SyncPlayerToCamera(const Camera &camera) {
   glm::vec3 playerPosition = camera.GetPosition();
-  playerPosition.y = std::max(playerPosition.y - kPlayerEyeOffsetY,
-                              kPlayerStandingCenterY);
+  const float playerGroundCenterY =
+      GetTerrainHeight(playerPosition.x, playerPosition.z) +
+      kPlayerStandingCenterY;
+  playerPosition.y =
+      std::max(playerPosition.y - kPlayerEyeOffsetY, playerGroundCenterY);
 
   JPH::BodyInterface &bodyInterface = _physicsWorld.GetBodyInterface();
   bodyInterface.SetPositionAndRotation(
@@ -203,6 +235,10 @@ void Level::SyncPlayerToCamera(const Camera &camera) {
       JPH::Quat::sIdentity(), JPH::EActivation::Activate);
   bodyInterface.SetLinearVelocity(_playerBody, JPH::Vec3::sZero());
   _playerGrounded = false;
+}
+
+float Level::GetTerrainHeight(float x, float z) const {
+  return SampleTerrainHeight(x, z, kGroundSize, kGroundSize);
 }
 
 glm::vec3 Level::GetPlayerEyePosition() {

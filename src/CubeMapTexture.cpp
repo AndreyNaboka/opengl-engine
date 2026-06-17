@@ -19,7 +19,7 @@ CubeMapTexture::CubeMapTexture(const std::array<std::string, 6> &faces) {
       glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height,
                    0, format, GL_UNSIGNED_BYTE, data);
       stbi_image_free(data);
-      LogInfo("[CubeMap] Loaded face " + std::to_string(i) + " : " + path);
+      LogInfo("[CubeMap] Loaded face " + std::to_string(i) + " : " + faces[i]);
     } else {
       LogInfo("[CubeMap] Failed to load face " + std::to_string(i) + " : " +
               path);
