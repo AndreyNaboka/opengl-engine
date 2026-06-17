@@ -51,6 +51,13 @@ void Renderer::BeginScene(const Camera &camera) {
   _cmdQueue.clear();
 }
 
+void Renderer::SetSunLight(const glm::vec3 &direction, const glm::vec3 &color,
+                           float ambientStrength) {
+  _sceneData.sunDirection = glm::normalize(direction);
+  _sceneData.sunColor = color;
+  _sceneData.ambientStrength = ambientStrength;
+}
+
 void Renderer::Submit(const RenderCommand &cmd) {
   _cmdQueue.push_back(cmd);
   ++_stats.commandsSubmitted;
@@ -88,7 +95,11 @@ void Renderer::EndScene() {
 
     BindShader(*cmd.shader);
     cmd.shader->SetUniformMat4("u_Model", cmd.model);
-    ++_stats.uniformUpdates;
+    cmd.shader->SetUniformVec3("u_SunDirection", _sceneData.sunDirection);
+    cmd.shader->SetUniformVec3("u_SunColor", _sceneData.sunColor);
+    cmd.shader->SetUniformFloat("u_AmbientStrength",
+                                _sceneData.ambientStrength);
+    _stats.uniformUpdates += 4;
 
     for (const auto &binding : cmd.textures) {
       if (!binding.texture)

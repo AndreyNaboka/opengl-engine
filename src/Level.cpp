@@ -27,6 +27,9 @@ constexpr float kPlayerEyeOffsetY = 7.45f;
 constexpr float kPlayerMoveSpeed = 10.0f;
 constexpr float kPlayerJumpSpeed = 10.5f;
 constexpr float kGroundedTolerance = 0.08f;
+constexpr glm::vec3 kSunDirection(-0.35f, -0.82f, -0.45f);
+constexpr glm::vec3 kSunColor(1.0f, 0.86f, 0.62f);
+constexpr float kSunAmbientStrength = 0.16f;
 
 glm::mat4 EnemyOrbitTransform(float angle) {
   const glm::vec3 position(std::cos(angle) * kEnemyOrbitRadius,
@@ -44,6 +47,8 @@ glm::mat4 EnemyOrbitTransform(float angle) {
 } // namespace
 
 Level::Level() {
+  Renderer::SetSunLight(kSunDirection, kSunColor, kSunAmbientStrength);
+
   _terrainShader = std::make_unique<Shader>("assets/shaders/terrain.vert",
                                             "assets/shaders/common.frag");
   _groundTexture = std::make_unique<Texture>("assets/textures/grass.png");

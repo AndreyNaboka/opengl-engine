@@ -73,6 +73,8 @@ struct RendererStats {
 class Renderer {
 public:
   static void Init();
+  static void SetSunLight(const glm::vec3 &direction, const glm::vec3 &color,
+                          float ambientStrength);
   static void BeginScene(const Camera &camera);
   static void Submit(const RenderCommand &cmd);
   static void EndScene();
@@ -87,6 +89,9 @@ private:
   struct SceneData {
     glm::mat4 view, projection;
     glm::vec3 cameraPos;
+    glm::vec3 sunDirection = glm::vec3(-0.45f, -0.85f, -0.25f);
+    glm::vec3 sunColor = glm::vec3(1.0f, 0.86f, 0.62f);
+    float ambientStrength = 0.16f;
   };
 
   struct TextureState {
