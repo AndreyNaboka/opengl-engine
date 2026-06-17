@@ -41,6 +41,10 @@ void main() {
   vec3 litColor = (ambient + diffuse) * texColor + specular;
   vec3 skyDir = normalize(v_WorldPos - u_CameraPos.xyz);
   vec3 fogColor = textureLod(u_FogSkybox, skyDir, 3.0).rgb;
+  float sunFogAmount = max(dot(skyDir, sunToSurface), 0.0);
+  float sunFogHalo = pow(sunFogAmount, 8.0) * 0.32;
+  float sunFogAureole = pow(sunFogAmount, 3.0) * 0.12;
+  fogColor += u_SunColor * (sunFogHalo + sunFogAureole);
 
   FragColor = vec4(mix(litColor, fogColor, fogFactor), 1.0);
 }

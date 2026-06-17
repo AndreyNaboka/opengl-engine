@@ -14,7 +14,9 @@ void main() {
     float sunAmount = max(dot(skyDir, sunDir), 0.0);
     float sunDisc = smoothstep(0.9975, 0.9995, sunAmount);
     float sunGlow = pow(sunAmount, 96.0) * 0.45;
-    texColor.rgb += u_SunColor * sunGlow;
+    float sunHalo = pow(sunAmount, 12.0) * 0.38;
+    float sunAureole = pow(sunAmount, 4.0) * 0.16;
+    texColor.rgb += u_SunColor * (sunGlow + sunHalo + sunAureole);
     texColor.rgb = mix(texColor.rgb, u_SunColor * 2.2, sunDisc);
     // Простой эффект мерцания звёзд (на основе яркости)
 //    float twinkle = sin(texColor.r * 50.0 + u_Time) * 0.2;
