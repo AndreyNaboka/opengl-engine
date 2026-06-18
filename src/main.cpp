@@ -3,6 +3,7 @@
 #include "Camera.h"
 #include "Renderer.h"
 #include "Level.h"
+#include "MemoryTracker.h"
 #include <algorithm>
 #include <cstdarg>
 #include <cstdio>
@@ -13,6 +14,10 @@
 #include <imgui_impl_opengl3.h>
 
 namespace {
+float BytesToMiB(std::size_t bytes) {
+  return static_cast<float>(bytes) / (1024.0f * 1024.0f);
+}
+
 void DebugText(const char *fmt, ...) {
   char buffer[512];
   va_list args;
@@ -48,6 +53,9 @@ void RenderDebugText(const Camera &cam, bool freeCameraMode) {
   DebugText("Frame time: %.2f ms", io.DeltaTime * 1000.0f);
   DebugText("Camera mode: %s", freeCameraMode ? "Free flight" : "Physics");
   DebugText("%s", cam.GetDebugStringPos().c_str());
+  const MemoryStats memoryStats = MemoryTracker::GetStats();
+  DebugText("App heap: %.2f MiB", BytesToMiB(memoryStats.currentBytes));
+  DebugText("Heap peak: %.2f MiB", BytesToMiB(memoryStats.peakBytes));
   const RendererStats &stats = Renderer::GetStats();
   ImGui::Separator();
   DebugText("Commands: %u", stats.commandsSubmitted);
