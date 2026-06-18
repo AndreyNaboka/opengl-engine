@@ -124,14 +124,11 @@ Level::~Level() {
 }
 
 void Level::Update(const InputManager &input, Camera &camera, float dt) {
-  if (input.IsKeyJustPressed(GLFW_KEY_F2)) {
-    _freeCameraMode = !_freeCameraMode;
-    if (!_freeCameraMode) {
-      SyncPlayerToCamera(camera);
-    }
+  if (camera.UpdateFreeCameraMode(input) && !camera.IsFreeCameraMode()) {
+    SyncPlayerToCamera(camera);
   }
 
-  if (_freeCameraMode) {
+  if (camera.IsFreeCameraMode()) {
     camera.Update(input, dt);
   } else {
     camera.UpdateLook(input);

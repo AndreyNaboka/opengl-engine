@@ -32,6 +32,14 @@ void Camera::Update(const InputManager &input, float deltaTime) {
   UpdateLook(input);
 }
 
+bool Camera::UpdateFreeCameraMode(const InputManager &input) {
+  if (!input.IsKeyJustPressed(GLFW_KEY_F2))
+    return false;
+
+  _freeCameraMode = !_freeCameraMode;
+  return true;
+}
+
 void Camera::UpdateLook(const InputManager &input) {
   if (input.IsCursorEnabled())
     return;

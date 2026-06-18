@@ -124,7 +124,7 @@ int main() {
     level.Render();
     Renderer::EndScene();
 
-    RenderDebugText(camera, level.IsFreeCameraMode());
+    RenderDebugText(camera, camera.IsFreeCameraMode());
 
     wnd.SwapBuffers();
 

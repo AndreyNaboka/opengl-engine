@@ -12,12 +12,14 @@ public:
 
   void Update(const InputManager &input, float deltaTime);
   void UpdateLook(const InputManager &input);
+  bool UpdateFreeCameraMode(const InputManager &input);
   glm::mat4 GetViewMatrix() const;
   glm::mat4 GetProjectionMatrix() const;
 
   const glm::vec3 &GetPosition() const { return _position; }
   const glm::vec3 &GetFront() const { return _front; }
   const glm::vec3 &GetRight() const { return _right; }
+  bool IsFreeCameraMode() const { return _freeCameraMode; }
 
   void SetPosition(const glm::vec3 &position) { _position = position; }
   void SetAspect(const float aspect) { _aspect = aspect; }
@@ -33,6 +35,7 @@ private:
   float _aspect = 0.0f;
   float _nearPlane = 0.0f;
   float _farPlane = 0.0f;
+  bool _freeCameraMode = false;
 
   void UpdateVectors();
 };
