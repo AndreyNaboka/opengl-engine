@@ -18,8 +18,8 @@ constexpr float kGroundedTolerance = 0.08f;
 } // namespace
 
 void PlayerController::Spawn(PhysicsWorld &physicsWorld,
-                             const glm::vec3 &startPosition,
-                             float terrainWidth, float terrainDepth) {
+                             const glm::vec3 &startPosition, float terrainWidth,
+                             float terrainDepth) {
   _terrainWidth = terrainWidth;
   _terrainDepth = terrainDepth;
   _grounded = false;
@@ -82,8 +82,8 @@ void PlayerController::Update(const InputManager &input, const Camera &camera,
 
   const glm::vec3 horizontalVelocity = wishDir * kMoveSpeed;
   bodyInterface.SetLinearVelocity(
-      _body, JPH::Vec3(horizontalVelocity.x, verticalVelocity,
-                       horizontalVelocity.z));
+      _body,
+      JPH::Vec3(horizontalVelocity.x, verticalVelocity, horizontalVelocity.z));
   bodyInterface.ActivateBody(_body);
 }
 
