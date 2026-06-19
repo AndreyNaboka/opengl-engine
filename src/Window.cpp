@@ -2,12 +2,40 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <Window.h>
+#include <mutex>
+
+namespace {
+std::mutex g_glfwLifecycleMutex;
+int g_glfwWindowCount = 0;
+
+bool AcquireGlfw() {
+  std::lock_guard lock(g_glfwLifecycleMutex);
+  if (g_glfwWindowCount++ > 0)
+    return true;
+
+  if (glfwInit())
+    return true;
+
+  --g_glfwWindowCount;
+  return false;
+}
+
+void ReleaseGlfw() {
+  std::lock_guard lock(g_glfwLifecycleMutex);
+  if (g_glfwWindowCount <= 0)
+    return;
+
+  if (--g_glfwWindowCount == 0)
+    glfwTerminate();
+}
+} // namespace
 
 Window::Window(const int width, const int height, const std::string &title) {
-  if (!glfwInit()) {
+  if (!AcquireGlfw()) {
     LogInfo("[Window] Can't init glfw");
     return;
   }
+  _ownsGlfw = true;
 
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -16,7 +44,8 @@ Window::Window(const int width, const int height, const std::string &title) {
   _wnd = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
   if (!_wnd) {
     LogInfo("[Window] Can't create window");
-    glfwTerminate();
+    ReleaseGlfw();
+    _ownsGlfw = false;
     return;
   }
 
@@ -46,7 +75,8 @@ Window::Window(const int width, const int height, const std::string &title) {
 Window::~Window() {
   if (_wnd)
     glfwDestroyWindow(_wnd);
-  glfwTerminate();
+  if (_ownsGlfw)
+    ReleaseGlfw();
 }
 
 int Window::GetFramebufferWidth() const {

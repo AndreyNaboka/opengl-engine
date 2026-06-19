@@ -5,10 +5,10 @@
 #include "GltfLoader.h"
 #include "Mesh.h"
 #include "PhysicsWorld.h"
+#include "PlayerController.h"
 #include "Renderer.h"
 #include "Shader.h"
 #include "Texture.h"
-#include <Jolt/Physics/Body/BodyID.h>
 #include <memory>
 
 class Camera;
@@ -40,12 +40,10 @@ private:
   RenderCommand _skyboxCmd;
 
   PhysicsWorld _physicsWorld;
-  JPH::BodyID _playerBody;
-  bool _playerGrounded = false;
+  PlayerController _playerController;
 
-  void UpdatePlayer(const InputManager &input, const Camera &camera);
-  void ConstrainPlayerToTerrain();
-  void SyncPlayerToCamera(const Camera &camera);
-  float GetTerrainHeight(float x, float z) const;
-  glm::vec3 GetPlayerEyePosition();
+  void SetupTerrain();
+  void SetupPlayer();
+  void SetupModel();
+  void SetupSkybox();
 };

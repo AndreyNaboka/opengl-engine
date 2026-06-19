@@ -83,13 +83,8 @@ GltfLoader::LoadTextureFromCgltf(const cgltf_image *image,
       // TODO Для base64 потребуется дополнительная обработка
     } else {
       std::string texturePath = basePath + "/" + image->uri;
-      try {
-        texture = std::make_shared<Texture>(texturePath);
-        LogInfo("[GltfLoader] Loaded external texture: " + texturePath);
-      } catch (const std::exception &e) {
-        LogInfo("[GltfLoader] Failed to load texture: " + texturePath +
-                ", error: " + e.what());
-      }
+      texture = std::make_shared<Texture>(texturePath);
+      LogInfo("[GltfLoader] Loaded external texture: " + texturePath);
     }
   }
   return texture;
@@ -165,11 +160,11 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     cgltf_free(data);
     return result;
   }
-  const cgltf_primitive &prim = targetMesh->primitives[0];
+  const cgltf_primitive &firstPrim = targetMesh->primitives[0];
 
-  if (prim.material) {
+  if (firstPrim.material) {
     for (size_t i = 0; i < data->materials_count; ++i) {
-      if (&data->materials[i] == prim.material) {
+      if (&data->materials[i] == firstPrim.material) {
         result.defaultMaterialIndex = static_cast<int>(i);
         LogInfo("[GltfLoader] Primitive uses material index: " +
                 std::to_string(i));
@@ -350,114 +345,138 @@ GltfModelData GltfLoader::Load(const std::string &assetPath) {
     LogInfo("[GltfLoader]   [+] \"" + anim->name + "\"");
   }
 
-  const cgltf_accessor *posAcc = nullptr;
-  const cgltf_accessor *normAcc = nullptr;
-  const cgltf_accessor *uvAcc = nullptr;
-
-  for (size_t i = 0; i < prim.attributes_count; ++i) {
-    const auto &attr = prim.attributes[i];
-    if (strcmp(attr.name, "POSITION") == 0)
-      posAcc = attr.data;
-    else if (strcmp(attr.name, "NORMAL") == 0)
-      normAcc = attr.data;
-    else if (strcmp(attr.name, "TEXCOORD_0") == 0)
-      uvAcc = attr.data;
-  }
-
-  if (!posAcc) {
-    LogInfo("[GltfLoader] ERROR: No POSITION attribute!");
-    cgltf_free(data);
-    return result;
-  }
-
-  size_t vCount = posAcc->count;
-  LOG_DEBUG("[GltfLoader] Vertex count: " + std::to_string(vCount));
-
-  std::vector<glm::vec3> positions(vCount);
-  for (size_t i = 0; i < vCount; ++i) {
-    if (!ReadAccessorVec3(posAcc, i, positions[i])) {
-      LogInfo("[GltfLoader] ERROR: Failed to read POSITION attribute!");
-      cgltf_free(data);
-      return result;
-    }
-  }
-
-  std::vector<glm::vec3> normals(vCount, glm::vec3(0.0f, 1.0f, 0.0f));
-  if (normAcc) {
-    for (size_t i = 0; i < vCount; ++i) {
-      ReadAccessorVec3(normAcc, i, normals[i]);
-    }
-  }
-
-  std::vector<glm::vec2> uvs(vCount, glm::vec2(0.0f));
-  if (uvAcc) {
-    LogInfo("[GltfLoader] Reading UVs");
-    for (size_t i = 0; i < vCount; ++i) {
-      ReadAccessorVec2(uvAcc, i, uvs[i]);
-    }
-  }
-
+  std::vector<StaticVertex> staticVertices;
+  std::vector<SkinnedVertex> skinnedVertices;
   std::vector<uint32_t> indices;
-  if (prim.indices && prim.indices->count > 0) {
-    size_t iCount = prim.indices->count;
-    indices.resize(iCount);
-    const cgltf_accessor *idxAcc = prim.indices;
-    for (size_t i = 0; i < iCount; ++i) {
-      indices[i] = static_cast<uint32_t>(cgltf_accessor_read_index(idxAcc, i));
+  bool canUseSkinning = result.isSkinned;
+
+  for (size_t primitiveIndex = 0; primitiveIndex < targetMesh->primitives_count;
+       ++primitiveIndex) {
+    const cgltf_primitive &prim = targetMesh->primitives[primitiveIndex];
+    if (prim.type != cgltf_primitive_type_triangles) {
+      LogInfo("[GltfLoader] Skipping non-triangle primitive: " +
+              std::to_string(primitiveIndex));
+      continue;
     }
 
-    LogInfo("[GltfLoader] Indices count: " + std::to_string(iCount));
-    for (size_t i = 0; i < std::min(iCount, (size_t)12); ++i) {
-      LOG_DEBUG("[GltfLoader] Index " + std::to_string(i) + ": " +
-                std::to_string(indices[i]));
-    }
-  }
+    const cgltf_accessor *posAcc = nullptr;
+    const cgltf_accessor *normAcc = nullptr;
+    const cgltf_accessor *uvAcc = nullptr;
+    const cgltf_accessor *jointsAcc = nullptr;
+    const cgltf_accessor *weightsAcc = nullptr;
 
-  const cgltf_accessor *jointsAcc = nullptr, *weightsAcc = nullptr;
-  if (result.isSkinned) {
     for (size_t i = 0; i < prim.attributes_count; ++i) {
       const auto &attr = prim.attributes[i];
-      if (strcmp(attr.name, "JOINTS_0") == 0)
+      if (strcmp(attr.name, "POSITION") == 0)
+        posAcc = attr.data;
+      else if (strcmp(attr.name, "NORMAL") == 0)
+        normAcc = attr.data;
+      else if (strcmp(attr.name, "TEXCOORD_0") == 0)
+        uvAcc = attr.data;
+      else if (strcmp(attr.name, "JOINTS_0") == 0)
         jointsAcc = attr.data;
       else if (strcmp(attr.name, "WEIGHTS_0") == 0)
         weightsAcc = attr.data;
     }
-    if (!jointsAcc || !weightsAcc) {
-      LogInfo("[GltfLoader] WARNING: Skin marked but no JOINTS_0/WEIGHTS_0. "
-              "Falling back to static mesh.");
-      result.isSkinned = false;
+
+    if (!posAcc) {
+      LogInfo("[GltfLoader] Skipping primitive without POSITION: " +
+              std::to_string(primitiveIndex));
+      continue;
+    }
+
+    const size_t vCount = posAcc->count;
+    const uint32_t vertexOffset =
+        static_cast<uint32_t>(canUseSkinning ? skinnedVertices.size()
+                                             : staticVertices.size());
+    LOG_DEBUG("[GltfLoader] Primitive " + std::to_string(primitiveIndex) +
+              " vertex count: " + std::to_string(vCount));
+
+    if (canUseSkinning && (!jointsAcc || !weightsAcc)) {
+      LogInfo("[GltfLoader] WARNING: Skin marked but primitive has no "
+              "JOINTS_0/WEIGHTS_0. Falling back to static mesh.");
+      canUseSkinning = false;
+      staticVertices.reserve(skinnedVertices.size() + vCount);
+      for (const SkinnedVertex &vertex : skinnedVertices) {
+        staticVertices.push_back({vertex.position, vertex.normal, vertex.uv});
+      }
+      skinnedVertices.clear();
+    }
+
+    if (canUseSkinning) {
+      skinnedVertices.reserve(skinnedVertices.size() + vCount);
+    } else {
+      staticVertices.reserve(staticVertices.size() + vCount);
+    }
+
+    for (size_t i = 0; i < vCount; ++i) {
+      glm::vec3 position(0.0f);
+      if (!ReadAccessorVec3(posAcc, i, position)) {
+        LogInfo("[GltfLoader] ERROR: Failed to read POSITION attribute!");
+        cgltf_free(data);
+        return result;
+      }
+
+      glm::vec3 normal(0.0f, 1.0f, 0.0f);
+      if (normAcc)
+        ReadAccessorVec3(normAcc, i, normal);
+
+      glm::vec2 uv(0.0f);
+      if (uvAcc)
+        ReadAccessorVec2(uvAcc, i, uv);
+
+      if (canUseSkinning) {
+        SkinnedVertex vertex{};
+        vertex.position = position;
+        vertex.normal = normal;
+        vertex.uv = uv;
+        for (int j = 0; j < 4; ++j) {
+          vertex.boneIds[j] = -1;
+          vertex.boneWeights[j] = 0.0f;
+        }
+
+        glm::vec4 weights(0.0f);
+        ReadAccessorVec4(weightsAcc, i, weights);
+        ReadAccessorJoints(jointsAcc, i, vertex.boneIds);
+        for (int j = 0; j < 4; ++j) {
+          vertex.boneWeights[j] = weights[j];
+        }
+        skinnedVertices.push_back(vertex);
+      } else {
+        staticVertices.push_back({position, normal, uv});
+      }
+    }
+
+    if (prim.indices && prim.indices->count > 0) {
+      const size_t iCount = prim.indices->count;
+      const cgltf_accessor *idxAcc = prim.indices;
+      indices.reserve(indices.size() + iCount);
+      for (size_t i = 0; i < iCount; ++i) {
+        indices.push_back(vertexOffset +
+                          static_cast<uint32_t>(
+                              cgltf_accessor_read_index(idxAcc, i)));
+      }
+      LogInfo("[GltfLoader] Primitive " + std::to_string(primitiveIndex) +
+              " indices count: " + std::to_string(iCount));
+    } else {
+      indices.reserve(indices.size() + vCount);
+      for (uint32_t i = 0; i < vCount; ++i) {
+        indices.push_back(vertexOffset + i);
+      }
+      LogInfo("[GltfLoader] Primitive " + std::to_string(primitiveIndex) +
+              " is non-indexed");
     }
   }
 
-  if (result.isSkinned) {
-    std::vector<SkinnedVertex> skinnedVertices(vCount);
-    for (size_t i = 0; i < vCount; ++i) {
-      skinnedVertices[i].position = positions[i];
-      skinnedVertices[i].normal = normals[i];
-      skinnedVertices[i].uv = uvs[i];
-      for (int j = 0; j < 4; ++j) {
-        skinnedVertices[i].boneIds[j] = -1;
-        skinnedVertices[i].boneWeights[j] = 0.0f;
-      }
-    }
+  if (indices.empty()) {
+    LogInfo("[GltfLoader] ERROR: No drawable primitives found");
+    cgltf_free(data);
+    return result;
+  }
 
-    for (size_t i = 0; i < vCount; ++i) {
-      glm::vec4 weights(0.0f);
-      ReadAccessorVec4(weightsAcc, i, weights);
-      ReadAccessorJoints(jointsAcc, i, skinnedVertices[i].boneIds);
-      for (int j = 0; j < 4; ++j) {
-        skinnedVertices[i].boneWeights[j] = weights[j];
-      }
-    }
-
+  if (canUseSkinning) {
     result.mesh = std::make_shared<Mesh>(skinnedVertices, indices);
   } else {
-    std::vector<StaticVertex> staticVertices(vCount);
-    for (size_t i = 0; i < vCount; ++i) {
-      staticVertices[i].position = positions[i];
-      staticVertices[i].normal = normals[i];
-      staticVertices[i].uv = uvs[i];
-    }
     result.mesh = std::make_shared<Mesh>(staticVertices, indices);
     result.isSkinned = false;
   }

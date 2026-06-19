@@ -17,8 +17,12 @@ std::array<Renderer::TextureState, Renderer::MaxTextureSlots>
     Renderer::_boundTextures;
 unsigned int Renderer::_cameraUBO = 0;
 unsigned int Renderer::_bonesUBO = 0;
+bool Renderer::_initialized = false;
 
 void Renderer::Init() {
+  if (_initialized)
+    return;
+
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
   glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -38,6 +42,22 @@ void Renderer::Init() {
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
   _cmdQueue.reserve(128);
+  _initialized = true;
+}
+
+void Renderer::Shutdown() {
+  _cmdQueue.clear();
+  if (_cameraUBO) {
+    glDeleteBuffers(1, &_cameraUBO);
+    _cameraUBO = 0;
+  }
+  if (_bonesUBO) {
+    glDeleteBuffers(1, &_bonesUBO);
+    _bonesUBO = 0;
+  }
+  _boundTextures.fill({});
+  _currentShaderID = 0;
+  _initialized = false;
 }
 
 void Renderer::BeginScene(const Camera &camera) {
@@ -87,8 +107,8 @@ void Renderer::EndScene() {
       });
 
   for (const auto &cmd : _cmdQueue) {
-    if (!cmd.mesh || !cmd.shader) {
-      LogInfo("[Renderer] Skipping render command with null mesh or shader");
+    if (!cmd.mesh || !cmd.shader || !cmd.shader->IsValid()) {
+      LogInfo("[Renderer] Skipping render command with invalid mesh or shader");
       continue;
     }
     ApplyRenderState(cmd);

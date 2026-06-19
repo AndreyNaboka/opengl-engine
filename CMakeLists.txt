@@ -11,6 +11,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 option(ENGINE_ENABLE_ASAN "Enable AddressSanitizer for Debug builds" OFF)
 option(ENGINE_CGLTF_NO_STDIO "Build cgltf without stdio helpers" OFF)
+set(ENGINE_JOLT_SOURCE_DIR
+    ""
+    CACHE PATH
+          "Use an existing JoltPhysics source tree instead of FetchContent")
 
 include(FetchContent)
 
@@ -29,21 +33,52 @@ find_package(glm REQUIRED)
 find_package(OpenGL REQUIRED)
 
 # Jolt Physics
-set(OVERRIDE_CXX_FLAGS OFF CACHE BOOL "" FORCE)
-set(ENABLE_ALL_WARNINGS OFF CACHE BOOL "" FORCE)
-set(INTERPROCEDURAL_OPTIMIZATION OFF CACHE BOOL "" FORCE)
-set(ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
-FetchContent_Declare(
-  JoltPhysics
-  GIT_REPOSITORY https://github.com/jrouwe/JoltPhysics.git
-  GIT_TAG v5.5.0
-  SOURCE_SUBDIR Build)
-FetchContent_MakeAvailable(JoltPhysics)
+set(OVERRIDE_CXX_FLAGS
+    OFF
+    CACHE BOOL "" FORCE)
+set(ENABLE_ALL_WARNINGS
+    OFF
+    CACHE BOOL "" FORCE)
+set(INTERPROCEDURAL_OPTIMIZATION
+    OFF
+    CACHE BOOL "" FORCE)
+set(ENABLE_INSTALL
+    OFF
+    CACHE BOOL "" FORCE)
+if(ENGINE_JOLT_SOURCE_DIR)
+  add_subdirectory("${ENGINE_JOLT_SOURCE_DIR}/Build"
+                   "${CMAKE_BINARY_DIR}/_deps/joltphysics-build")
+else()
+  set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+  FetchContent_Declare(
+    JoltPhysics
+    GIT_REPOSITORY https://github.com/jrouwe/JoltPhysics.git
+    GIT_TAG v5.5.0
+    SOURCE_SUBDIR Build)
+  FetchContent_MakeAvailable(JoltPhysics)
+endif()
 
 # sources
-file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
-     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
-     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")
+set(SOURCE_FILES
+    src/Animator.cpp
+    src/Camera.cpp
+    src/CubeMapTexture.cpp
+    src/DebugOverlay.cpp
+    src/GltfLoader.cpp
+    src/InputManager.cpp
+    src/Level.cpp
+    src/Mesh.cpp
+    src/PhysicsWorld.cpp
+    src/PlayerController.cpp
+    src/Renderer.cpp
+    src/Shader.cpp
+    src/Sky.cpp
+    src/TerrainGenerator.cpp
+    src/Texture.cpp
+    src/Utils/MemoryTracker.cpp
+    src/Utils/PathUtils.cpp
+    src/Window.cpp
+    src/main.cpp)
 
 # build
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
@@ -81,12 +116,24 @@ target_include_directories(
                           ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # link
-target_link_libraries(${PROJECT_NAME} PRIVATE glad glfw glm::glm stb_image
-                                              imgui cgltf Jolt OpenGL::GL)
+target_link_libraries(
+  ${PROJECT_NAME}
+  PRIVATE glad
+          glfw
+          glm::glm
+          stb_image
+          imgui
+          cgltf
+          Jolt
+          OpenGL::GL)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-  target_compile_options(${PROJECT_NAME} PRIVATE -Wformat=2 -Wformat-security
-                                                 -Werror=format-security)
+  target_compile_options(
+    ${PROJECT_NAME}
+    PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
+            -Wformat=2
+            -Wformat-security
+            -Werror=format-security)
 endif()
 
 if(ENGINE_ENABLE_ASAN AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -102,9 +149,9 @@ endif()
 if(WIN32)
   target_compile_definitions(${PROJECT_NAME} PRIVATE PLATFORM_WINDOWS)
 elseif(APPLE)
-  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Cocoa"
-                                                "-framework IOKit"
-                                                "-framework CoreVideo")
+  target_link_libraries(
+    ${PROJECT_NAME} PRIVATE "-framework Cocoa" "-framework IOKit"
+                            "-framework CoreVideo")
   target_compile_definitions(${PROJECT_NAME} PRIVATE PLATFORM_MACOS)
 elseif(UNIX)
   target_link_libraries(${PROJECT_NAME} PRIVATE dl pthread)

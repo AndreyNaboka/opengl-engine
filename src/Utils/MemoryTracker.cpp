@@ -41,18 +41,18 @@ void TrackFree(void *ptr) noexcept {
   std::free(header->raw);
 }
 
-void *Allocate(std::size_t size) {
+void *Allocate(std::size_t size) noexcept {
   if (size == 0)
     size = 1;
 
   if (size >
       std::numeric_limits<std::size_t>::max() - sizeof(AllocationHeader)) {
-    throw std::bad_alloc();
+    return nullptr;
   }
 
   void *raw = std::malloc(sizeof(AllocationHeader) + size);
   if (!raw)
-    throw std::bad_alloc();
+    return nullptr;
 
   AllocationHeader *header = static_cast<AllocationHeader *>(raw);
   header->size = size;
@@ -61,19 +61,19 @@ void *Allocate(std::size_t size) {
   return header + 1;
 }
 
-void *AllocateAligned(std::size_t size, std::size_t alignment) {
+void *AllocateAligned(std::size_t size, std::size_t alignment) noexcept {
   if (size == 0)
     size = 1;
 
   const std::size_t overhead = sizeof(AllocationHeader) + alignment - 1;
   if (alignment == 0 ||
       size > std::numeric_limits<std::size_t>::max() - overhead) {
-    throw std::bad_alloc();
+    return nullptr;
   }
 
   void *raw = std::malloc(size + overhead);
   if (!raw)
-    throw std::bad_alloc();
+    return nullptr;
 
   const auto rawAddress = reinterpret_cast<std::uintptr_t>(raw);
   const auto dataStart = rawAddress + sizeof(AllocationHeader);
@@ -86,6 +86,12 @@ void *AllocateAligned(std::size_t size, std::size_t alignment) {
   TrackAllocation(size);
   return reinterpret_cast<void *>(alignedAddress);
 }
+
+void *RequireAllocation(void *ptr) noexcept {
+  if (!ptr)
+    std::abort();
+  return ptr;
+}
 } // namespace
 
 MemoryStats MemoryTracker::GetStats() {
@@ -95,32 +101,28 @@ MemoryStats MemoryTracker::GetStats() {
           g_allocationCount.load(std::memory_order_relaxed)};
 }
 
-void *operator new(std::size_t size) { return Allocate(size); }
+void *operator new(std::size_t size) { return RequireAllocation(Allocate(size)); }
 
-void *operator new[](std::size_t size) { return Allocate(size); }
+void *operator new[](std::size_t size) {
+  return RequireAllocation(Allocate(size));
+}
 
 void *operator new(std::size_t size, std::align_val_t alignment) {
-  return AllocateAligned(size, static_cast<std::size_t>(alignment));
+  return RequireAllocation(
+      AllocateAligned(size, static_cast<std::size_t>(alignment)));
 }
 
 void *operator new[](std::size_t size, std::align_val_t alignment) {
-  return AllocateAligned(size, static_cast<std::size_t>(alignment));
+  return RequireAllocation(
+      AllocateAligned(size, static_cast<std::size_t>(alignment)));
 }
 
 void *operator new(std::size_t size, const std::nothrow_t &) noexcept {
-  try {
-    return Allocate(size);
-  } catch (...) {
-    return nullptr;
-  }
+  return Allocate(size);
 }
 
 void *operator new[](std::size_t size, const std::nothrow_t &) noexcept {
-  try {
-    return Allocate(size);
-  } catch (...) {
-    return nullptr;
-  }
+  return Allocate(size);
 }
 
 void operator delete(void *ptr) noexcept { TrackFree(ptr); }

@@ -20,9 +20,12 @@ private:
   double _lastMouseX = 0.0;
   double _lastMouseY = 0.0;
   bool _cursorEnabled = false;
+  std::array<bool, GLFW_KEY_LAST + 1> _currentKeyStates{};
   std::array<bool, GLFW_KEY_LAST + 1> _previousKeyStates{};
 
 private:
   bool IsValidKey(int key) const;
+  static void KeyCallback(GLFWwindow *w, int key, int scancode, int action,
+                          int mods);
   static void MouseCallback(GLFWwindow *w, double xPos, double yPos);
 };

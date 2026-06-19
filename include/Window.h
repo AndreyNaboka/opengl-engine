@@ -14,7 +14,7 @@ public:
   float GetWidth() const;
   float GetHeight() const;
   void Close() const;
-  GLFWwindow *GetNativeHanle() const { return _wnd; }
+  GLFWwindow *GetNativeHandle() const { return _wnd; }
   bool IsValid() const { return _wnd != nullptr; }
   int GetFramebufferWidth() const;
   int GetFramebufferHeight() const;
@@ -22,4 +22,5 @@ public:
 
 private:
   GLFWwindow *_wnd = nullptr;
+  bool _ownsGlfw = false;
 };

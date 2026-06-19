@@ -9,8 +9,26 @@ Shader::Shader(const std::string &vertexPath, const std::string &fragmentPath) {
   auto vPath = Path::ResolveAssetPath(vertexPath);
   auto fPath = Path::ResolveAssetPath(fragmentPath);
 
-  unsigned int vs = Compile(GL_VERTEX_SHADER, ReadFile(vPath.string()));
-  unsigned int fs = Compile(GL_FRAGMENT_SHADER, ReadFile(fPath.string()));
+  std::string vertexSource;
+  std::string fragmentSource;
+  if (!ReadFile(vPath.string(), vertexSource) ||
+      !ReadFile(fPath.string(), fragmentSource)) {
+    _ID = 0;
+    return;
+  }
+
+  bool vertexOk = false;
+  bool fragmentOk = false;
+  unsigned int vs = Compile(GL_VERTEX_SHADER, vertexSource, vertexOk);
+  unsigned int fs = Compile(GL_FRAGMENT_SHADER, fragmentSource, fragmentOk);
+  if (!vertexOk || !fragmentOk) {
+    if (vs)
+      glDeleteShader(vs);
+    if (fs)
+      glDeleteShader(fs);
+    _ID = 0;
+    return;
+  }
 
   _ID = glCreateProgram();
   glAttachShader(_ID, vs);
@@ -22,7 +40,12 @@ Shader::Shader(const std::string &vertexPath, const std::string &fragmentPath) {
   glGetProgramiv(_ID, GL_LINK_STATUS, &success);
   if (!success) {
     glGetProgramInfoLog(_ID, 512, nullptr, log);
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+    glDeleteProgram(_ID);
+    _ID = 0;
     LogInfo(std::string("[Shader] link error: ") + std::string(log));
+    return;
   }
 
   glDeleteShader(vs);
@@ -33,10 +56,15 @@ Shader::Shader(const std::string &vertexPath, const std::string &fragmentPath) {
 }
 
 Shader::~Shader() { glDeleteProgram(_ID); }
-void Shader::Bind() const { glUseProgram(_ID); }
+void Shader::Bind() const {
+  if (_ID)
+    glUseProgram(_ID);
+}
 void Shader::Unbind() const { glUseProgram(0); }
 
 int Shader::GetUniformLocation(const std::string &name) const {
+  if (!_ID)
+    return -1;
   if (_cache.find(name) == _cache.end()) {
     int loc = glGetUniformLocation(_ID, name.c_str());
     _cache[name] = loc;
@@ -46,6 +74,9 @@ int Shader::GetUniformLocation(const std::string &name) const {
 
 void Shader::BindUniformBlock(const std::string &name,
                               unsigned int bindingPoint) const {
+  if (!_ID)
+    return;
+
   const unsigned int index = glGetUniformBlockIndex(_ID, name.c_str());
   if (index == GL_INVALID_INDEX)
     return;
@@ -80,28 +111,35 @@ void Shader::SetUniformFloat(const std::string &name, float value) const {
   glUniform1f(location, value);
 }
 
-std::string Shader::ReadFile(const std::string &path) const {
+bool Shader::ReadFile(const std::string &path, std::string &source) const {
   LogInfo("[Shader] open shader " + path);
   std::ifstream file(path);
-  if (!file.is_open())
+  if (!file.is_open()) {
     LogInfo("[Shader] Failed to open shader: " + path);
-  return std::string((std::istreambuf_iterator<char>(file)),
-                     std::istreambuf_iterator<char>());
+    source.clear();
+    return false;
+  }
+  source.assign(std::istreambuf_iterator<char>(file),
+                std::istreambuf_iterator<char>());
+  return true;
 }
 
 unsigned int Shader::Compile(unsigned int type,
-                             const std::string &source) const {
+                             const std::string &source, bool &success) const {
+  success = false;
   unsigned int shader = glCreateShader(type);
   const char *src = source.c_str();
   glShaderSource(shader, 1, &src, nullptr);
   glCompileShader(shader);
 
-  int success;
+  int compileOk;
   char log[512];
-  glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-  if (!success) {
+  glGetShaderiv(shader, GL_COMPILE_STATUS, &compileOk);
+  if (!compileOk) {
     glGetShaderInfoLog(shader, 512, nullptr, log);
-    LogInfo(std::string("[Shader] compile error: " + std::string(log)));
+    LogInfo(std::string("[Shader] compile error: ") + std::string(log));
+    return shader;
   }
+  success = true;
   return shader;
 }

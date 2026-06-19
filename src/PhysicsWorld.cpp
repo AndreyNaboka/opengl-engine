@@ -14,6 +14,7 @@
 #include <cmath>
 #include <cstdarg>
 #include <cstdio>
+#include <mutex>
 #include <thread>
 
 namespace {
@@ -43,6 +44,32 @@ constexpr JPH::BroadPhaseLayer NonMoving(0);
 constexpr JPH::BroadPhaseLayer Moving(1);
 constexpr JPH::uint Count = 2;
 } // namespace BroadPhaseLayers
+
+std::mutex g_joltLifecycleMutex;
+int g_joltWorldCount = 0;
+
+void AcquireJoltRuntime() {
+  std::lock_guard lock(g_joltLifecycleMutex);
+  if (g_joltWorldCount++ > 0)
+    return;
+
+  JPH::RegisterDefaultAllocator();
+  JPH::Trace = TraceImpl;
+  JPH_IF_ENABLE_ASSERTS(JPH::AssertFailed = AssertFailedImpl;)
+
+  JPH::Factory::sInstance = new JPH::Factory();
+  JPH::RegisterTypes();
+}
+
+void ReleaseJoltRuntime() {
+  std::lock_guard lock(g_joltLifecycleMutex);
+  if (--g_joltWorldCount > 0)
+    return;
+
+  JPH::UnregisterTypes();
+  delete JPH::Factory::sInstance;
+  JPH::Factory::sInstance = nullptr;
+}
 } // namespace
 
 class PhysicsWorld::BroadPhaseLayerInterfaceImpl final
@@ -115,23 +142,23 @@ public:
   }
 };
 
+class PhysicsWorld::RuntimeHandle final {
+public:
+  RuntimeHandle() { AcquireJoltRuntime(); }
+  ~RuntimeHandle() { ReleaseJoltRuntime(); }
+};
+
 PhysicsWorld::PhysicsWorld()
-    : _broadPhaseLayerInterface(
+    : _runtime(std::make_unique<RuntimeHandle>()),
+      _broadPhaseLayerInterface(
           std::make_unique<BroadPhaseLayerInterfaceImpl>()),
       _objectVsBroadPhaseLayerFilter(
           std::make_unique<ObjectVsBroadPhaseLayerFilterImpl>()),
       _objectLayerPairFilter(std::make_unique<ObjectLayerPairFilterImpl>()) {
-  JPH::RegisterDefaultAllocator();
-  JPH::Trace = TraceImpl;
-  JPH_IF_ENABLE_ASSERTS(JPH::AssertFailed = AssertFailedImpl;)
-
   _tempAllocator = std::make_unique<JPH::TempAllocatorImpl>(10 * 1024 * 1024);
   _jobSystem = std::make_unique<JPH::JobSystemThreadPool>(
       JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers,
       std::max(1u, std::thread::hardware_concurrency()));
-
-  JPH::Factory::sInstance = new JPH::Factory();
-  JPH::RegisterTypes();
 
   constexpr JPH::uint maxBodies = 1024;
   constexpr JPH::uint numBodyMutexes = 0;
@@ -143,11 +170,7 @@ PhysicsWorld::PhysicsWorld()
   _physicsSystem.SetGravity(JPH::Vec3(0.0f, -24.0f, 0.0f));
 }
 
-PhysicsWorld::~PhysicsWorld() {
-  JPH::UnregisterTypes();
-  delete JPH::Factory::sInstance;
-  JPH::Factory::sInstance = nullptr;
-}
+PhysicsWorld::~PhysicsWorld() = default;
 
 JPH::BodyID PhysicsWorld::CreateStaticBox(const glm::vec3 &position,
                                           const glm::vec3 &halfExtent) {

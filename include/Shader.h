@@ -18,6 +18,7 @@ public:
   void SetUniformInt(const std::string &name, int value) const;
   void SetUniformFloat(const std::string &name, float value) const;
   unsigned int GetID() const { return _ID; }
+  bool IsValid() const { return _ID != 0; }
   int GetUniformLocation(const std::string &name) const;
   void BindUniformBlock(const std::string &name,
                         unsigned int bindingPoint) const;
@@ -26,6 +27,7 @@ private:
   unsigned int _ID;
   mutable std::unordered_map<std::string, int> _cache;
 
-  std::string ReadFile(const std::string &path) const;
-  unsigned int Compile(unsigned int type, const std::string &source) const;
+  bool ReadFile(const std::string &path, std::string &source) const;
+  unsigned int Compile(unsigned int type, const std::string &source,
+                       bool &success) const;
 };

@@ -6,6 +6,7 @@
 #include "Utils/PathUtils.h"
 
 Texture::Texture(const uint8_t *data, size_t size, const char *mime_type) {
+  stbi_set_flip_vertically_on_load(false);
   glGenTextures(1, &_ID);
   glBindTexture(GL_TEXTURE_2D, _ID);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -29,6 +30,11 @@ Texture::Texture(const uint8_t *data, size_t size, const char *mime_type) {
     stbi_image_free(imageData);
   } else {
     LogInfo("[Texture] failed to load texture from memory");
+    _width = _height = 1;
+    unsigned char white[] = {255, 255, 255, 255};
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 white);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   }
 }
 
@@ -37,6 +43,7 @@ Texture::Texture(const std::string &path) {
   auto absolutePath = Path::ResolveAssetPath(path);
   unsigned char *data =
       stbi_load(absolutePath.string().c_str(), &_width, &_height, nullptr, 4);
+  stbi_set_flip_vertically_on_load(false);
   LogInfo("[Text] load texture: " + path);
   if (!data) {
     LogInfo("[Texture] Failed to load: " + path);
@@ -46,6 +53,10 @@ Texture::Texture(const std::string &path) {
     glBindTexture(GL_TEXTURE_2D, _ID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                  white);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     return;
   }
 

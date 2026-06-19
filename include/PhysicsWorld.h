@@ -38,7 +38,9 @@ private:
   class BroadPhaseLayerInterfaceImpl;
   class ObjectVsBroadPhaseLayerFilterImpl;
   class ObjectLayerPairFilterImpl;
+  class RuntimeHandle;
 
+  std::unique_ptr<RuntimeHandle> _runtime;
   std::unique_ptr<BroadPhaseLayerInterfaceImpl> _broadPhaseLayerInterface;
   std::unique_ptr<ObjectVsBroadPhaseLayerFilterImpl>
       _objectVsBroadPhaseLayerFilter;

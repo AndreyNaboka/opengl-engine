@@ -9,37 +9,33 @@ void InputManager::Init(GLFWwindow *wnd) {
   }
   _wnd = wnd;
   glfwSetWindowUserPointer(_wnd, this);
+  glfwSetKeyCallback(_wnd, KeyCallback);
   glfwSetCursorPosCallback(_wnd, MouseCallback);
   SetCursorEnabled(false);
   glfwGetCursorPos(_wnd, &_lastMouseX, &_lastMouseY);
   for (int key = 0; key <= GLFW_KEY_LAST; ++key) {
-    _previousKeyStates[key] = glfwGetKey(_wnd, key) == GLFW_PRESS;
+    _currentKeyStates[key] = glfwGetKey(_wnd, key) == GLFW_PRESS;
+    _previousKeyStates[key] = _currentKeyStates[key];
   }
 }
 
 void InputManager::Update() {
+  _previousKeyStates = _currentKeyStates;
   _mouseDeltaX = 0.0f;
   _mouseDeltaY = 0.0f;
-
-  if (!_wnd)
-    return;
-
-  for (int key = 0; key <= GLFW_KEY_LAST; ++key) {
-    _previousKeyStates[key] = glfwGetKey(_wnd, key) == GLFW_PRESS;
-  }
 }
 
 bool InputManager::IsKeyPressed(const int key) const {
   if (!_wnd || !IsValidKey(key))
     return false;
-  return glfwGetKey(_wnd, key) == GLFW_PRESS;
+  return _currentKeyStates[key];
 }
 
 bool InputManager::IsKeyJustPressed(const int key) const {
   if (!_wnd || !IsValidKey(key))
     return false;
 
-  const bool pressed = glfwGetKey(_wnd, key) == GLFW_PRESS;
+  const bool pressed = _currentKeyStates[key];
   return pressed && !_previousKeyStates[key];
 }
 
@@ -64,6 +60,20 @@ bool InputManager::IsValidKey(int key) const {
   return key >= 0 && key <= GLFW_KEY_LAST;
 }
 
+void InputManager::KeyCallback(GLFWwindow *w, int key, int scancode, int action,
+                               int mods) {
+  (void)scancode;
+  (void)mods;
+  auto *input = reinterpret_cast<InputManager *>(glfwGetWindowUserPointer(w));
+  if (!input || !input->IsValidKey(key))
+    return;
+
+  if (action == GLFW_PRESS)
+    input->_currentKeyStates[key] = true;
+  else if (action == GLFW_RELEASE)
+    input->_currentKeyStates[key] = false;
+}
+
 void InputManager::MouseCallback(GLFWwindow *w, double xPos, double yPos) {
   auto *input = reinterpret_cast<InputManager *>(glfwGetWindowUserPointer(w));
   if (!input)
@@ -77,8 +87,8 @@ void InputManager::MouseCallback(GLFWwindow *w, double xPos, double yPos) {
     return;
   }
 
-  input->_mouseDeltaX = static_cast<float>(xPos - input->_lastMouseX);
-  input->_mouseDeltaY = static_cast<float>(input->_lastMouseY - yPos);
+  input->_mouseDeltaX += static_cast<float>(xPos - input->_lastMouseX);
+  input->_mouseDeltaY += static_cast<float>(input->_lastMouseY - yPos);
   input->_lastMouseX = xPos;
   input->_lastMouseY = yPos;
 }

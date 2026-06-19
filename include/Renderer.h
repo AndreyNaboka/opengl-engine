@@ -73,6 +73,7 @@ struct RendererStats {
 class Renderer {
 public:
   static void Init();
+  static void Shutdown();
   static void SetSunLight(const glm::vec3 &direction, const glm::vec3 &color,
                           float ambientStrength);
   static void BeginScene(const Camera &camera);
@@ -108,6 +109,7 @@ private:
   static std::array<TextureState, MaxTextureSlots> _boundTextures;
   static unsigned int _cameraUBO;
   static unsigned int _bonesUBO;
+  static bool _initialized;
 
   static void ResetFrameState();
   static void ApplyRenderState(const RenderCommand &cmd);
