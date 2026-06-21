@@ -21,6 +21,11 @@ namespace {
 constexpr float kFixedPhysicsStep = 1.0f / 60.0f;
 constexpr float kMaxFrameStep = 1.0f / 15.0f;
 
+#if defined(__GNUC__) || defined(__clang__)
+void TraceImpl(const char *fmt, ...)
+    __attribute__((format(printf, 1, 2)));
+#endif
+
 void TraceImpl(const char *fmt, ...) {
   char buffer[1024];
   va_list args;

@@ -118,8 +118,7 @@ target_include_directories(
 # link
 target_link_libraries(
   ${PROJECT_NAME}
-  PRIVATE glad
-          glfw
+  PRIVATE glfw
           glm::glm
           stb_image
           imgui

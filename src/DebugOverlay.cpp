@@ -14,6 +14,11 @@ float BytesToMiB(std::size_t bytes) {
   return static_cast<float>(bytes) / (1024.0f * 1024.0f);
 }
 
+#if defined(__GNUC__) || defined(__clang__)
+void DebugText(const char *fmt, ...)
+    __attribute__((format(printf, 1, 2)));
+#endif
+
 void DebugText(const char *fmt, ...) {
   char buffer[512];
   va_list args;
